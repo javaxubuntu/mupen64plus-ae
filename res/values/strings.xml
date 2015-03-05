@@ -470,7 +470,7 @@
     <string name="scanRomsDialog_clearGallery">Clear gallery before adding</string>
 
     <!-- ROM Scanning -->
-    <string name="scanning_title">Scanning…</string>
+    <string name="scanning_title">Updating library…</string>
 
     <!-- ROM information calculation -->
     <string name="cacheRomInfo_searching">Searching…</string>
