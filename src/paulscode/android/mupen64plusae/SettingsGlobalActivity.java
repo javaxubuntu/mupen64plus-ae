@@ -36,6 +36,7 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 
 public class SettingsGlobalActivity extends PreferenceActivity implements OnPreferenceClickListener,
         OnSharedPreferenceChangeListener
@@ -129,6 +130,18 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
                 PrefUtil.removePreference( this, CATEGORY_DISPLAY, VIDEO_POLYGON_OFFSET );
                 PrefUtil.removePreference( this, CATEGORY_TOUCHSCREEN, TOUCHSCREEN_FEEDBACK );
                 PrefUtil.removePreference( this, CATEGORY_TOUCHSCREEN, TOUCHSCREEN_AUTO_HOLD );
+            }
+            if( mode == 1 || mode == 2 )
+            {
+                // Remove distractions if this was launched from TouchscreenProfileActivity or PlayMenuActivity
+                PrefUtil.removePreference( this, CATEGORY_LIBRARY, "showRecentlyPlayed" );
+                PrefUtil.removePreference( this, CATEGORY_LIBRARY, "pathRomsDir" );
+                PrefUtil.removePreference( this, CATEGORY_LIBRARY, "searchZips" );
+                PrefUtil.removePreference( this, CATEGORY_LIBRARY, "downloadArt" );
+                
+                Preference preference = findPreference(CATEGORY_LIBRARY);
+                PreferenceScreen preferenceScreen = getPreferenceScreen();
+                preferenceScreen.removePreference(preference);
             }
         }
     }
