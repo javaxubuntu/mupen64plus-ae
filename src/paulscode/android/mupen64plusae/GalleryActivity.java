@@ -442,7 +442,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         switch( menuItem.getItemId() )
         {
             case R.id.menuItem_refreshRoms:
-                refreshRoms();
+                refreshRoms( null );
                 return true;
             default:
                 return super.onOptionsItemSelected( menuItem );
@@ -546,25 +546,32 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     {
                         if( which == DialogInterface.BUTTON_POSITIVE )
                         {
-                            refreshRoms( /*file*/ );
+                            // The user selected a directory
+                            refreshRoms( file );
                         }
                         else if( file != null )
-                        { 
+                        {
                             if( file.isDirectory() )
+                            {
+                                // Clicking the Cancel button will set file to null, so this means they chose Parent Directory
                                 promptSearchPath( file );
+                            }
                             else
-                                refreshRoms( /*file*/ );
+                            {
+                                // The user selected an individual file
+                                refreshRoms( file );
+                            }
                         }
                     }
                 } );
         dialog.show();
     }
     
-    private void refreshRoms()
+    private void refreshRoms( final File startDir )
     {
         // Asynchronously search for ROMs
-        mCacheRomInfoTask = new CacheRomInfoTask( this, new File( mUserPrefs.romsDir ),
-                mAppData.mupen64plus_ini, mUserPrefs.romInfoCache_cfg, mUserPrefs.coverArtDir, mUserPrefs.unzippedRomsDir, mUserPrefs.getSearchZips(), mUserPrefs.getDownloadArt(), mUserPrefs.getClearGallery(), this );
+        mCacheRomInfoTask = new CacheRomInfoTask( this, startDir,
+                mAppData.mupen64plus_ini, mUserPrefs, this );
         mCacheRomInfoTask.execute();
     }
     

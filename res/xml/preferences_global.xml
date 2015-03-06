@@ -63,9 +63,9 @@
             android:title="@string/showFullNames_title" />
 
         <paulscode.android.mupen64plusae.preference.PathPreference
-            android:defaultValue="@string/pathRomsDir_default"
-            android:key="pathRomsDir"
-            android:title="@string/pathRomsDir_title"
+            android:defaultValue="@string/pathRomsDirs_default"
+            android:key="pathRomsDirs"
+            android:title="@string/pathRomsDirs_title"
             mupen64:selectionMode="0" />
 
         <CheckBoxPreference

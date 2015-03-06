@@ -84,8 +84,8 @@ import android.view.WindowManager;
  */
 public class UserPrefs
 {
-    /** The user-selected directory containing the game ROMs. */
-    public final String romsDir;
+    /** The user-selected directories containing the game ROMs. */
+    public final String[] romsDirs;
     
     /** The parent directory containing all user-writable data files. */
     public final String userDataDir;
@@ -294,7 +294,7 @@ public class UserPrefs
         mLocaleCodes = values;
         
         // Files
-        romsDir = mPreferences.getString( "pathRomsDir", "" );
+        romsDirs = mPreferences.getString( "pathRomsDirs", "!Downloads" ).split( "\n" );
         userDataDir = mPreferences.getString( "pathGameSaves", "" );
         galleryCacheDir = userDataDir + "/GalleryCache";
         coverArtDir = galleryCacheDir + "/CoverArt";
