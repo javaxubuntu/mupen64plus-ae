@@ -50,6 +50,7 @@ public class GalleryItem
 {
     public final String md5;
     public final String goodName;
+    public final String baseName;
     public final String artPath;
     public final int lastPlayed;
     public final File romFile;
@@ -57,10 +58,11 @@ public class GalleryItem
     public final boolean isHeading;
     public BitmapDrawable artBitmap;
     
-    public GalleryItem( Context context, String md5, String goodName, String romPath, String artPath, int lastPlayed )
+    public GalleryItem( Context context, String md5, String goodName, String baseName, String romPath, String artPath, int lastPlayed )
     {
         this.md5 = md5;
         this.goodName = goodName;
+        this.baseName = baseName;
         this.context = context;
         this.artPath = artPath;
         this.artBitmap = null;
@@ -73,6 +75,7 @@ public class GalleryItem
     public GalleryItem( Context context, String headingName )
     {
         this.goodName = headingName;
+        this.baseName = headingName;
         this.context = context;
         this.isHeading = true;
         this.md5 = null;
@@ -99,8 +102,8 @@ public class GalleryItem
     @Override
     public String toString()
     {
-        if( !TextUtils.isEmpty( goodName ) )
-            return goodName;
+        if( !TextUtils.isEmpty( baseName ) )
+            return baseName;
         else if( romFile != null && !TextUtils.isEmpty( romFile.getName() ) )
             return romFile.getName();
         else

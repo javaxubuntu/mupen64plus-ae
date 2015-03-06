@@ -131,13 +131,6 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
                 PrefUtil.removePreference( this, CATEGORY_TOUCHSCREEN, TOUCHSCREEN_FEEDBACK );
                 PrefUtil.removePreference( this, CATEGORY_TOUCHSCREEN, TOUCHSCREEN_AUTO_HOLD );
             }
-            if( mode == 1 || mode == 2 )
-            {
-                // Remove distractions if this was launched from TouchscreenProfileActivity or PlayMenuActivity
-                Preference preference = findPreference(CATEGORY_LIBRARY);
-                PreferenceScreen preferenceScreen = getPreferenceScreen();
-                preferenceScreen.removePreference(preference);
-            }
         }
     }
     
