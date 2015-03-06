@@ -69,6 +69,7 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.SearchView.OnQueryTextListener;
 
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.OnScrollListener;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.GridLayoutManager.SpanSizeLookup;
 import android.support.v4.view.GravityCompat;
@@ -86,7 +87,8 @@ import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.ImageButton;
-import android.support.v7.widget.RecyclerView.OnScrollListener;
+import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.util.DisplayMetrics;
 
 public class GalleryActivity extends ActionBarActivity implements ComputeMd5Listener, CacheRomInfoListener
@@ -463,7 +465,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         }
     }
     
-    public void onGalleryItemClick( GalleryItem item )
+    public void onGalleryItemClick( GalleryItem item, View parentView )
     {
         if( item == null )
             Log.e( "GalleryActivity", "No item selected" );
@@ -476,37 +478,41 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         }
     }
     
-    public boolean onGalleryItemCreateMenu( GalleryItem item, Menu menu )
+    public void onGalleryItemLongClick( GalleryItem item, View parentView )
     {
-        getMenuInflater().inflate( R.menu.gallery_item, menu );
-        return true;
-    }
-    
-    public boolean onGalleryItemMenuSelected( GalleryItem item, MenuItem menuItem )
-    {
-        if( item == null )
-            Log.e( "GalleryActivity", "No item selected" );
-        else if( item.romFile == null )
-            Log.e( "GalleryActivity", "No ROM file available" );
-        else
+        final GalleryItem finalItem = item;
+        PopupMenu popupMenu = new PopupMenu( this, parentView );
+        popupMenu.setOnMenuItemClickListener( new OnMenuItemClickListener()
         {
-            PlayMenuActivity.action = null;
-            switch( menuItem.getItemId() )
+            public boolean onMenuItemClick( MenuItem menuItem )
             {
-                case R.id.menuItem_resume:
-                    PlayMenuActivity.action = PlayMenuActivity.ACTION_RESUME;
-                    break;
-                case R.id.menuItem_restart:
-                    PlayMenuActivity.action = PlayMenuActivity.ACTION_RESTART;
-                    break;
-                case R.id.menuItem_settings:
-                    break;
+                if( finalItem == null )
+                    Log.e( "GalleryActivity", "No item selected" );
+                else if( finalItem.romFile == null )
+                    Log.e( "GalleryActivity", "No ROM file available" );
+                else
+                {
+                    PlayMenuActivity.action = null;
+                    switch( menuItem.getItemId() )
+                    {
+                        case R.id.menuItem_resume:
+                            PlayMenuActivity.action = PlayMenuActivity.ACTION_RESUME;
+                            break;
+                        case R.id.menuItem_restart:
+                            PlayMenuActivity.action = PlayMenuActivity.ACTION_RESTART;
+                            break;
+                        case R.id.menuItem_settings:
+                            break;
+                    }
+                    launchPlayMenuActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5 );
+                    return true;
+                }
+                return false;
             }
-            launchPlayMenuActivity( item.romFile.getAbsolutePath(), item.md5 );
-            return true;
-        }
+        });
         
-        return false;
+        getMenuInflater().inflate( R.menu.gallery_item, popupMenu.getMenu() );
+        popupMenu.show();
     }
     
     private void launchPlayMenuActivity( final String romPath )
