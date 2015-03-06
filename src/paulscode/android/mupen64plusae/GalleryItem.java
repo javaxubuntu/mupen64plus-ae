@@ -44,10 +44,6 @@ import android.view.View.OnLongClickListener;
 import android.widget.RelativeLayout;
 import android.widget.LinearLayout;
 
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.PopupMenu;
-import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.util.TypedValue;
 
 public class GalleryItem
@@ -147,6 +143,7 @@ public class GalleryItem
             
             // Tapping the dotsView will trigger a contextual menu
             ImageView dotsView = (ImageView) view.findViewById( R.id.dots );
+            final View itemView = view;
             if ( dotsView != null )
             {
                 dotsView.setOnClickListener( new OnClickListener()
@@ -154,7 +151,7 @@ public class GalleryItem
                     @Override
                     public void onClick( View view )
                     {
-                        showContextualMenu( view );
+                        showContextualMenu( itemView );
                     }
                 });
                 
@@ -163,7 +160,7 @@ public class GalleryItem
                     @Override
                     public boolean onLongClick( View view )
                     {
-                        showContextualMenu( view );
+                        showContextualMenu( itemView );
                         return true;
                     }
                 });
@@ -172,18 +169,8 @@ public class GalleryItem
         
         public void showContextualMenu( View view )
         {
-            final GalleryActivity galleryActivity = (GalleryActivity) mContext;
-            PopupMenu popupMenu = new PopupMenu( mContext, view );
-            popupMenu.setOnMenuItemClickListener( new OnMenuItemClickListener()
-            {
-                public boolean onMenuItemClick( MenuItem menuItem )
-                {
-                    return galleryActivity.onGalleryItemMenuSelected( item, menuItem );
-                }
-            });
-            
-            if ( galleryActivity.onGalleryItemCreateMenu( item, popupMenu.getMenu() ) )
-                popupMenu.show();
+            GalleryActivity galleryActivity = (GalleryActivity) mContext;
+            galleryActivity.onGalleryItemLongClick( item, view );
         }
         
         @Override
@@ -197,7 +184,7 @@ public class GalleryItem
             if ( mContext instanceof GalleryActivity )
             {
                 GalleryActivity activity = (GalleryActivity) mContext;
-                activity.onGalleryItemClick( item );
+                activity.onGalleryItemClick( item, view );
             }
         }
         
