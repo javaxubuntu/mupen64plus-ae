@@ -81,6 +81,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.content.res.Configuration;
 
+import android.view.KeyEvent;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.Animation.AnimationListener;
@@ -520,6 +521,19 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         // Asynchronously compute MD5 and launch play menu when finished
         Notifier.showToast( this, String.format( getString( R.string.toast_loadingGameInfo ) ) );
         new ComputeMd5Task( new File( romPath ), this ).execute();
+    }
+    
+    // Show the navigation drawer when the user presses the Menu button
+    // http://stackoverflow.com/questions/22220275/show-navigation-drawer-on-physical-menu-button
+    @Override
+    public boolean onKeyDown( int keyCode, KeyEvent event )
+    {
+        if ( keyCode == KeyEvent.KEYCODE_MENU )
+        {
+            drawerLayout.openDrawer( GravityCompat.START );
+            return true;
+        }
+        return super.onKeyDown( keyCode, event );
     }
     
     @Override
