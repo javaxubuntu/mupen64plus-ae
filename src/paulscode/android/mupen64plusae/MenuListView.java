@@ -62,7 +62,6 @@ public class MenuListView extends ExpandableListView
         mAdapter = null;
         mListener = null;
         mListData = null;
-        setChoiceMode( ListView.CHOICE_MODE_SINGLE );
     }
     
     public void setMenuResource( int menuResource )
@@ -81,6 +80,7 @@ public class MenuListView extends ExpandableListView
         mAdapter = new MenuListAdapter( this, menu );
         setAdapter( mAdapter );
         setGroupIndicator(null);
+        setChoiceMode( ListView.CHOICE_MODE_SINGLE );
         
         // In case we want to add custom expand/collapse views to the groups
         setOnGroupExpandListener( new OnGroupExpandListener()
@@ -128,6 +128,21 @@ public class MenuListView extends ExpandableListView
                 return false;
             }
         });
+    }
+    
+    public Menu getMenu()
+    {
+        return mListData;
+    }
+    
+    public MenuListAdapter getMenuListAdapter()
+    {
+        return mAdapter;
+    }
+    
+    public void reload()
+    {
+        mAdapter.notifyDataSetChanged();
     }
     
     public void setOnClickListener( OnClickListener listener )
@@ -194,6 +209,9 @@ public class MenuListView extends ExpandableListView
                 text1.setText( item.getTitle() );
                 text2.setVisibility( View.GONE );
                 icon.setImageDrawable( item.getIcon() );
+                
+                if ( item.isChecked() )
+                    view.setBackgroundColor( 0xFF444444 );
             }
             return view;
         }
@@ -233,6 +251,9 @@ public class MenuListView extends ExpandableListView
                 text1.setText( item.getTitle() );
                 text2.setVisibility( View.GONE );
                 icon.setImageDrawable( item.getIcon() );
+                
+                if ( item.isChecked() )
+                    view.setBackgroundColor( 0xFF444444 );
             }
             return view;
         }

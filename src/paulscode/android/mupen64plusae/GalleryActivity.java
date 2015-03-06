@@ -233,7 +233,11 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         final Activity activity = this;
         mDrawerList = (MenuListView) findViewById( R.id.left_drawer );
         mDrawerList.setMenuResource( R.menu.gallery_drawer );
-        mDrawerList.setSelectedGroup( 0 );
+        
+        // Select the Library section
+        mDrawerList.getMenu().getItem( 0 ).setChecked( true );
+        
+        // Handle menu item selections
         mDrawerList.setOnClickListener( new MenuListView.OnClickListener()
         {
             @Override
