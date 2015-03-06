@@ -190,15 +190,9 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             public void onScrolled( RecyclerView recyclerView, int dx, int dy )
             {
                 if ( dy < 0 )
-                {
-                    if ( mActionButton.getVisibility() == View.GONE && mActionButton.getAnimation() == null )
-                        showActionButton();
-                }
+                    showActionButton();
                 else if (dy > 0)
-                {
-                    if ( mActionButton.getVisibility() == View.VISIBLE && mActionButton.getAnimation() == null )
-                        hideActionButton();
-                }
+                    hideActionButton();
             }
             
             public void onScrollStateChanged( RecyclerView recyclerView, int newState )
@@ -240,54 +234,53 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         drawerList.setOnClickListener( new MenuListView.OnClickListener()
         {
             @Override
-            public boolean onClick( MenuItem menuItem )
+            public void onClick( MenuItem menuItem )
             {
                 switch( menuItem.getItemId() )
                 {
                     case R.id.menuItem_globalSettings:
                         startActivity( new Intent( activity, SettingsGlobalActivity.class ) );
-                        return true;
+                        break;
                     case R.id.menuItem_emulationProfiles:
                         startActivity( new Intent( activity, ManageEmulationProfilesActivity.class ) );
-                        return true;
+                        break;
                     case R.id.menuItem_touchscreenProfiles:
                         startActivity( new Intent( activity, ManageTouchscreenProfilesActivity.class ) );
-                        return true;
+                        break;
                     case R.id.menuItem_controllerProfiles:
                         startActivity( new Intent( activity, ManageControllerProfilesActivity.class ) );
-                        return true;
+                        break;
                     case R.id.menuItem_faq:
                         popupFaq();
-                        return true;
+                        break;
                     case R.id.menuItem_helpForum:
                         Utility.launchUri( activity, R.string.uri_forum );
-                        return true;
+                        break;
                     case R.id.menuItem_controllerDiagnostics:
                         startActivity( new Intent( activity, DiagnosticActivity.class ) );
-                        return true;
+                        break;
                     case R.id.menuItem_reportBug:
                         Utility.launchUri( activity, R.string.uri_bugReport );
-                        return true;
+                        break;
                     case R.id.menuItem_appVersion:
                         popupAppVersion();
-                        return true;
+                        break;
                     case R.id.menuItem_changelog:
                         new ChangeLog( getAssets() ).show( activity, 0, mAppData.appVersionCode );
-                        return true;
+                        break;
                     case R.id.menuItem_logcat:
                         popupLogcat();
-                        return true;
+                        break;
                     case R.id.menuItem_hardwareInfo:
                         popupHardwareInfo();
-                        return true;
+                        break;
                     case R.id.menuItem_credits:
                         Utility.launchUri( activity, R.string.uri_credits );
-                        return true;
+                        break;
                     case R.id.menuItem_localeOverride:
                         mUserPrefs.changeLocale( activity );
-                        return true;
+                        break;
                 }
-                return false;
             }
         });
         
@@ -326,7 +319,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     
     public void hideActionButton()
     {
-        if ( mActionButton.getVisibility() == View.GONE )
+        if ( mActionButton.getVisibility() != View.VISIBLE || mActionButton.getAnimation() != null )
             return;
         
         DisplayMetrics metrics = new DisplayMetrics();
@@ -355,7 +348,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     
     public void showActionButton()
     {
-        if ( mActionButton.getVisibility() == View.VISIBLE )
+        if ( mActionButton.getVisibility() == View.VISIBLE || mActionButton.getAnimation() != null )
             return;
         
         DisplayMetrics metrics = new DisplayMetrics();
