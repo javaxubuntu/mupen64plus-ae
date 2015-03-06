@@ -105,7 +105,7 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         
         CharSequence title = activity.getString( R.string.scanning_title );
         CharSequence message = activity.getString( R.string.toast_pleaseWait );
-        mProgress = new ProgressDialog( activity, this, title, mSearchPaths[ 0 ].getAbsolutePath(), message, true );
+        mProgress = new ProgressDialog( activity, this, title, "", message, true );
         mProgress.show();
     }
     

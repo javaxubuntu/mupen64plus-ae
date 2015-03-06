@@ -86,6 +86,7 @@ import android.view.animation.ScaleAnimation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.ImageButton;
 import android.support.v7.widget.RecyclerView.OnScrollListener;
+import android.util.DisplayMetrics;
 
 public class GalleryActivity extends ActionBarActivity implements ComputeMd5Listener, CacheRomInfoListener
 {
@@ -99,6 +100,10 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     private ActionBarDrawerToggle drawerToggle;
     private MenuListView drawerList;
     private ImageButton mActionButton;
+    private MenuItem mSearchItem;
+    private MenuItem mRefreshItem;
+    
+    // Searching
     private SearchView mSearchView;
     private String mSearchQuery = "";
     
@@ -212,6 +217,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             @Override
             public void onDrawerClosed( View drawerView )
             {
+                invalidateOptionsMenu();
                 showActionButton();
                 super.onDrawerClosed( drawerView );
             }
@@ -219,6 +225,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             @Override
             public void onDrawerOpened( View drawerView )
             {
+                invalidateOptionsMenu();
                 hideActionButton();
                 super.onDrawerOpened( drawerView );
             }
@@ -321,8 +328,12 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         if ( mActionButton.getVisibility() == View.GONE )
             return;
         
-        ScaleAnimation anim = new ScaleAnimation( 1.0f, 0.0f, 1.0f, 0.0f, 50, 50 );
-        anim.setDuration(100);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float logicalDensity = metrics.density;
+        
+        ScaleAnimation anim = new ScaleAnimation( 1.0f, 0.0f, 1.0f, 0.0f, 56/2 * logicalDensity, 56/2 * logicalDensity );
+        anim.setDuration(150);
         anim.setAnimationListener( new AnimationListener()
         {
             public void onAnimationStart( Animation anim )
@@ -346,8 +357,12 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         if ( mActionButton.getVisibility() == View.VISIBLE )
             return;
         
-        ScaleAnimation anim = new ScaleAnimation( 0.0f, 1.0f, 0.0f, 1.0f, 50, 50 );
-        anim.setDuration(100);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        float logicalDensity = metrics.density;
+        
+        ScaleAnimation anim = new ScaleAnimation( 0.0f, 1.0f, 0.0f, 1.0f, 56/2 * logicalDensity, 56/2 * logicalDensity );
+        anim.setDuration(150);
         anim.setAnimationListener( new AnimationListener()
         {
             public void onAnimationStart( Animation anim )
@@ -395,10 +410,15 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     @Override
     public boolean onCreateOptionsMenu( Menu menu )
     {
+        // Remove the toolbar items when the navigation drawer is open
+        if ( drawerLayout != null && drawerLayout.isDrawerOpen( GravityCompat.START ) )
+            return super.onCreateOptionsMenu( menu );
+        
         getMenuInflater().inflate( R.menu.gallery_activity, menu );
         
-        MenuItem searchItem = menu.findItem( R.id.menuItem_search );
-        MenuItemCompat.setOnActionExpandListener( searchItem, new OnActionExpandListener()
+        mRefreshItem = menu.findItem( R.id.menuItem_refreshRoms );
+        mSearchItem = menu.findItem( R.id.menuItem_search );
+        MenuItemCompat.setOnActionExpandListener( mSearchItem, new OnActionExpandListener()
         {
             @Override
             public boolean onMenuItemActionCollapse( MenuItem item )
@@ -416,7 +436,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             }
         });
         
-        mSearchView = (SearchView) MenuItemCompat.getActionView( searchItem );
+        mSearchView = (SearchView) MenuItemCompat.getActionView( mSearchItem );
         mSearchView.setOnQueryTextListener( new OnQueryTextListener()
         {
             public boolean onQueryTextSubmit( String query )
