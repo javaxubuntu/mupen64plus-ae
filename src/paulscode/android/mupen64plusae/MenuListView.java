@@ -22,6 +22,7 @@ package paulscode.android.mupen64plusae;
 
 import org.mupen64plusae.v3.alpha.R;
 
+import android.widget.ListView;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ExpandableListView.OnChildClickListener;
@@ -61,6 +62,7 @@ public class MenuListView extends ExpandableListView
         mAdapter = null;
         mListener = null;
         mListData = null;
+        setChoiceMode( ListView.CHOICE_MODE_SINGLE );
     }
     
     public void setMenuResource( int menuResource )
