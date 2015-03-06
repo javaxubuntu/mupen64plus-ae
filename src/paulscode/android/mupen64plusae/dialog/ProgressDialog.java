@@ -21,6 +21,7 @@ public class ProgressDialog implements OnClickListener
     
     private final Activity mActivity;
     private final AsyncTask<?, ?, ?> mTask;
+    private final TextView mTextSubtitle;
     private final TextView mTextProgress;
     private final TextView mTextSubprogress;
     private final TextView mTextMessage;
@@ -46,6 +47,7 @@ public class ProgressDialog implements OnClickListener
                 .getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         View layout = inflater.inflate( R.layout.progress_dialog, null );
         Builder builder = getBuilder( activity, title, subtitle, message, cancelable, layout );
+        mTextSubtitle = (TextView) layout.findViewById( R.id.textSubtitle );
         mTextProgress = (TextView) layout.findViewById( R.id.textProgress );
         mTextSubprogress = (TextView) layout.findViewById( R.id.textSubprogress );
         mTextMessage = (TextView) layout.findViewById( R.id.textMessage );
@@ -97,6 +99,18 @@ public class ProgressDialog implements OnClickListener
         else
             builder.setNegativeButton( null, null );
         return builder;
+    }
+    
+    public void setSubtitle( final CharSequence text )
+    {
+        mActivity.runOnUiThread( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mTextSubtitle.setText( text );
+            }
+        } );
     }
     
     public void setText( final CharSequence text )

@@ -422,8 +422,8 @@
     <string name="pathHiResTextures_title">Import texture pack</string>
     <string name="pathHiResTextures_summary">Apply custom textures (ZIP format) to a game</string>
     <string name="pathHiResTextures_default">~</string>
-    <string name="pathRomsDir_title">ROMs folder</string>
-    <string name="pathRomsDir_default">!Downloads</string>
+    <string name="pathRomsDirs_title">ROMs folders</string>
+    <string name="pathRomsDirs_default">!Downloads</string>
     <string name="pathGameSaves_title">Game save folder</string>
     <string name="pathGameSaves_default">!mupen64plusae-v3-alpha</string>
 

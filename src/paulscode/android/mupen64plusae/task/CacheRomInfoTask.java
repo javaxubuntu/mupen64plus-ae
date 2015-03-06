@@ -42,6 +42,7 @@ import org.mupen64plusae.v3.alpha.R;
 import paulscode.android.mupen64plusae.dialog.ProgressDialog;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
+import paulscode.android.mupen64plusae.persistent.UserPrefs;
 import paulscode.android.mupen64plusae.util.RomDatabase;
 import paulscode.android.mupen64plusae.util.RomDatabase.RomDetail;
 import paulscode.android.mupen64plusae.util.RomHeader;
@@ -59,42 +60,56 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         public void onCacheRomInfoFinished( ConfigFile file, boolean canceled );
     }
     
-    public CacheRomInfoTask( Activity activity, File searchPath, String databasePath, String configPath,
-            String artDir, String unzipDir, boolean searchZips, boolean downloadArt, boolean clearGallery,
+    public CacheRomInfoTask( Activity activity, File searchPath, String databasePath, UserPrefs userPrefs,
             CacheRomInfoListener listener )
     {
-        if( searchPath == null )
-            throw new IllegalArgumentException( "Root path cannot be null" );
-        if( !searchPath.exists() )
-            throw new IllegalArgumentException( "Root path does not exist: " + searchPath.getAbsolutePath() );
         if( TextUtils.isEmpty( databasePath ) )
             throw new IllegalArgumentException( "ROM database path cannot be null or empty" );
-        if( TextUtils.isEmpty( configPath ) )
-            throw new IllegalArgumentException( "Config file path cannot be null or empty" );
-        if( TextUtils.isEmpty( artDir ) )
-            throw new IllegalArgumentException( "Art directory cannot be null or empty" );
-        if( TextUtils.isEmpty( unzipDir ) )
-            throw new IllegalArgumentException( "Unzip directory cannot be null or empty" );
+        if( userPrefs == null )
+            throw new IllegalArgumentException( "User prefs cannot be null" );
         if( listener == null )
             throw new IllegalArgumentException( "Listener cannot be null" );
         
-        mSearchPath = searchPath;
+        if ( searchPath != null )
+        {
+            mUpdating = false;
+            mSearchPaths = new File[]{ searchPath };
+        }
+        else
+        {
+            mUpdating = true;
+            mSearchPaths = new File[ userPrefs.romsDirs.length ];
+            int index = 0;
+            for ( String path : userPrefs.romsDirs )
+            {
+                mSearchPaths[ index ] = new File( path );
+                index++;
+            }
+        }
+        
         mDatabasePath = databasePath;
-        mConfigPath = configPath;
-        mArtDir = artDir;
-        mUnzipDir = unzipDir;
-        mSearchZips = searchZips;
-        mDownloadArt = downloadArt;
-        mClearGallery = clearGallery;
+        mConfigPath = userPrefs.romInfoCache_cfg;
+        mArtDir = userPrefs.coverArtDir;
+        mUnzipDir = userPrefs.unzippedRomsDir;
+        mSearchZips = userPrefs.getSearchZips();
+        mDownloadArt = userPrefs.getDownloadArt();
+        mClearGallery = userPrefs.getClearGallery();
         mListener = listener;
+        
+        if( TextUtils.isEmpty( mConfigPath ) )
+            throw new IllegalArgumentException( "Config file path cannot be null or empty" );
+        if( TextUtils.isEmpty( mArtDir ) )
+            throw new IllegalArgumentException( "Art directory cannot be null or empty" );
+        if( TextUtils.isEmpty( mUnzipDir ) )
+            throw new IllegalArgumentException( "Unzip directory cannot be null or empty" );
         
         CharSequence title = activity.getString( R.string.scanning_title );
         CharSequence message = activity.getString( R.string.toast_pleaseWait );
-        mProgress = new ProgressDialog( activity, this, title, mSearchPath.getAbsolutePath(), message, true );
+        mProgress = new ProgressDialog( activity, this, title, mSearchPaths[ 0 ].getAbsolutePath(), message, true );
         mProgress.show();
     }
     
-    private final File mSearchPath;
+    private final File[] mSearchPaths;
     private final String mDatabasePath;
     private final String mConfigPath;
     private final String mArtDir;
@@ -102,6 +117,7 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
     private final boolean mSearchZips;
     private final boolean mDownloadArt;
     private final boolean mClearGallery;
+    private final boolean mUpdating;
     private final CacheRomInfoListener mListener;
     private final ProgressDialog mProgress;
     
@@ -116,7 +132,12 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         // http://android2know.blogspot.com/2013/01/create-nomedia-file.html
         touchFile( mArtDir + "/.nomedia" );
         
-        final List<File> files = getAllFiles( mSearchPath );
+        final List<File> files = new ArrayList<File>();
+        for ( File searchPath : mSearchPaths )
+        {
+            files.addAll( getAllFiles( searchPath ) );
+        }
+        
         final RomDatabase database = new RomDatabase( mDatabasePath );
         final ConfigFile config = new ConfigFile( mConfigPath );
         
@@ -125,7 +146,11 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         {
             mProgress.setMaxSubprogress( 0 );
             mProgress.setSubtext( "" );
-            mProgress.setText( file.getAbsolutePath().substring( mSearchPath.getAbsolutePath().length() + 1 ) );
+            
+            String path = file.getAbsolutePath();
+            int fileIndex = path.lastIndexOf( "/" ) + 1;
+            mProgress.setSubtitle( path.substring( 0, fileIndex ) );
+            mProgress.setText( path.substring( fileIndex ) );
             mProgress.setMessage( R.string.cacheRomInfo_searching );
             
             if( isCancelled() ) break;
@@ -191,28 +216,39 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         Set<String> md5Set = config.keySet();
         String[] md5s = md5Set.toArray( new String[ md5Set.size() ] );
         
-        for ( String md5 : md5s ) {
+        for ( String md5 : md5s )
+        {
             ConfigSection section = config.get( md5 );
             if ( section.get( "goodName" ) == null ) continue;
             
-            if ( section.get( "exists" ) != null || cancelled )
+            if ( section.get( "exists" ) != null || cancelled || !( mUpdating && mClearGallery) )
             {
                 // Remove the "exists" field
                 section.put( "exists", null );
             }
             else
             {
-                // Delete the cover art file
-                String artPath = section.get( "artPath" );
-                if ( artPath != null )
+                // One last check; see if the file path itself still exists
+                String filePath = section.get( "romPath" );
+                if ( filePath != null && new File( filePath ).exists() )
                 {
-                    File artFile = new File( artPath );
-                    if ( artFile != null && artFile.exists() )
-                        artFile.delete();
+                    // The file exists, so do nothing
+                    
                 }
-                
-                // Remove the config section
-                config.remove( md5 );
+                else
+                {
+                    // Delete the cover art file
+                    String artPath = section.get( "artPath" );
+                    if ( artPath != null )
+                    {
+                        File artFile = new File( artPath );
+                        if ( artFile != null && artFile.exists() )
+                            artFile.delete();
+                    }
+                    
+                    // Remove the config section
+                    config.remove( md5 );
+                }
             }
         }
         
