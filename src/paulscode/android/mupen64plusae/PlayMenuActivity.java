@@ -78,7 +78,7 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
     public static final String ACTION_WIKI = "actionWiki";
     public static final String ACTION_RESET_GAME_PREFS = "actionResetGamePrefs";
     public static final String ACTION_EXIT = "actionExit";
-    public static final String ACTION_GLOBAL_SETTINGS = "screenGlobalSettings";
+    public static final String ACTION_SETTINGS = "actionSettings";
     
     public static final String EMULATION_PROFILE = "emulationProfile";
     public static final String TOUCHSCREEN_PROFILE = "touchscreenProfile";
@@ -163,20 +163,15 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         mCategoryCheats = (PreferenceGroup) findPreference( CATEGORY_CHEATS );
         
         // Set some game-specific strings
-        setTitle( mRomDetail.goodName );
-        if( !TextUtils.isEmpty( mRomDetail.baseName ) )
-        {
-            String title = getString( R.string.categoryGameSettings_titleNamed, mRomDetail.baseName );
-            findPreference( CATEGORY_GAME_SETTINGS ).setTitle( title );
-        }
+        if( TextUtils.isEmpty( mRomDetail.baseName ) )
+            setTitle( getString( R.string.categoryGameSettings_title ) );
+        else
+            setTitle( getString( R.string.categoryGameSettings_titleNamed, mRomDetail.baseName ) );
         
         // Handle certain menu items that require extra processing or aren't actually preferences
-        PrefUtil.setOnPreferenceClickListener( this, ACTION_RESUME, this );
-        PrefUtil.setOnPreferenceClickListener( this, ACTION_RESTART, this );
         PrefUtil.setOnPreferenceClickListener( this, ACTION_CHEAT_EDITOR, this );
         PrefUtil.setOnPreferenceClickListener( this, ACTION_WIKI, this );
         PrefUtil.setOnPreferenceClickListener( this, ACTION_RESET_GAME_PREFS, this );
-        PrefUtil.setOnPreferenceClickListener( this, ACTION_GLOBAL_SETTINGS, this );
         
         // Remove wiki menu item if not applicable
         if( TextUtils.isEmpty( mRomDetail.wikiUrl ) )
@@ -207,210 +202,6 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
             // Configure the player map preference
             PlayerMapPreference playerPref = (PlayerMapPreference) findPreference( PLAYER_MAP );
             playerPref.setMogaController( mMogaController );
-        }
-        
-        // Add a new section explaining the region and dump information for the ROM
-        // http://forums.emulator-zone.com/archive/index.php/t-5533.html
-        List<Preference> prefs = new ArrayList<Preference>();
-        
-        // There's probably some clever regex to do this, but use basic string functions to parse out the dump info
-        int index = 0, length = mRomDetail.goodName.length();
-        
-        while ( index < length )
-        {
-            int startIndex = length, endIndex = length;
-            int paren = mRomDetail.goodName.indexOf( "(", index );
-            int bracket = mRomDetail.goodName.indexOf( "[", index );
-            if ( paren > -1 && paren < startIndex ) startIndex = paren + 1;
-            if ( bracket > -1 && bracket < startIndex ) startIndex = bracket + 1;
-            if ( startIndex >= length ) break;
-            
-            paren = mRomDetail.goodName.indexOf( ")", startIndex );
-            bracket = mRomDetail.goodName.indexOf( "]", startIndex );
-            if ( paren > -1 && paren < endIndex ) endIndex = paren;
-            if ( bracket > -1 && bracket < endIndex ) endIndex = bracket;
-            if ( endIndex >= length ) break;
-            
-            // parse out the tokens between startIndex and endIndex
-            String code = mRomDetail.goodName.substring( startIndex, endIndex );
-            
-            Preference info = new Preference( this );
-            
-            if ( code.length() <= 2 )
-            {
-                if ( code.startsWith( "a" ) )
-                {
-                    // a# = alternate
-                    info.setTitle( getString( R.string.infoAlternate_title ) );
-                    info.setSummary( getString( R.string.infoAlternate_summary ) );
-                }
-                else if ( code.startsWith( "b" ) )
-                {
-                    // b# = bad dump
-                    info.setTitle( getString( R.string.infoBad_title ) );
-                    info.setSummary( getString( R.string.infoBad_summary ) );
-                }
-                else if ( code.startsWith( "t" ) )
-                {
-                    // t# = trained
-                    info.setTitle( getString( R.string.infoTrained_title ) );
-                    info.setSummary( getString( R.string.infoTrained_summary ) );
-                }
-                else if ( code.startsWith( "f" ) )
-                {
-                    // f# = fix
-                    info.setTitle( getString( R.string.infoFixed_title ) );
-                    info.setSummary( getString( R.string.infoFixed_summary ) );
-                }
-                else if ( code.startsWith( "h" ) )
-                {
-                    // h# = hack
-                    info.setTitle( getString( R.string.infoHack_title ) );
-                    info.setSummary( getString( R.string.infoHack_summary ) );
-                }
-                else if ( code.startsWith( "o" ) )
-                {
-                    // o# = overdump
-                    info.setTitle( getString( R.string.infoOverdump_title ) );
-                    info.setSummary( getString( R.string.infoOverdump_summary ) );
-                }
-                else if ( code.equals( "!" ) )
-                {
-                    // ! = good dump
-                    info.setTitle( getString( R.string.infoVerified_title ) );
-                    info.setSummary( getString( R.string.infoVerified_summary ) );
-                }
-                else if ( code.equals( "A" ) )
-                {
-                    // A = Australia
-                    info.setTitle( getString( R.string.infoAustralia_title ) );
-                    info.setSummary( getString( R.string.infoAustralia_summary ) );
-                }
-                else if ( code.equals( "U" ) )
-                {
-                    // U = USA
-                    info.setTitle( getString( R.string.infoUSA_title ) );
-                    info.setSummary( getString( R.string.infoUSA_summary ) );
-                }
-                else if ( code.equals( "J" ) )
-                {
-                    // J = Japan
-                    info.setTitle( getString( R.string.infoJapan_title ) );
-                    info.setSummary( getString( R.string.infoJapan_summary ) );
-                }
-                else if ( code.equals( "JU" ) )
-                {
-                    // JU = Japan and USA
-                    info.setTitle( getString( R.string.infoJapanUSA_title ) );
-                    info.setSummary( getString( R.string.infoJapanUSA_summary ) );
-                }
-                else if ( code.equals( "E" ) )
-                {
-                    // E = Europe
-                    info.setTitle( getString( R.string.infoEurope_title ) );
-                    info.setSummary( getString( R.string.infoEurope_summary ) );
-                }
-                else if ( code.equals( "G" ) )
-                {
-                    // G = Germany
-                    info.setTitle( getString( R.string.infoGermany_title ) );
-                    info.setSummary( getString( R.string.infoGermany_summary ) );
-                }
-                else if ( code.equals( "F" ) )
-                {
-                    // F = France
-                    info.setTitle( getString( R.string.infoFrance_title ) );
-                    info.setSummary( getString( R.string.infoFrance_summary ) );
-                }
-                else if ( code.equals( "S" ) )
-                {
-                    // S = Spain
-                    info.setTitle( getString( R.string.infoSpain_title ) );
-                    info.setSummary( getString( R.string.infoSpain_summary ) );
-                }
-                else if ( code.equals( "I" ) )
-                {
-                    // I = Italy
-                    info.setTitle( getString( R.string.infoItaly_title ) );
-                    info.setSummary( getString( R.string.infoItaly_summary ) );
-                }
-                else if ( code.equals( "PD" ) )
-                {
-                    // PD = public domain
-                    info.setTitle( getString( R.string.infoPublicDomain_title ) );
-                    info.setSummary( getString( R.string.infoPublicDomain_summary ) );
-                }
-                else if ( code.startsWith( "M" ) )
-                {
-                    // M# = multi-language
-                    info.setTitle( getString( R.string.infoLanguage_title, code.substring( 1 ) ) );
-                    info.setSummary( getString( R.string.infoLanguage_summary ) );
-                }
-                else
-                {
-                    // ignore this code
-                    info = null;
-                }
-            }
-            else if ( code.startsWith( "T+" ) )
-            {
-                // T+* = translated
-                info.setTitle( getString( R.string.infoTranslated_title ) );
-                info.setSummary( getString( R.string.infoTranslated_summary ) );
-            }
-            else if ( code.startsWith( "T-" ) )
-            {
-                // T-* = translated
-                info.setTitle( getString( R.string.infoTranslated_title ) );
-                info.setSummary( getString( R.string.infoTranslated_summary ) );
-            }
-            else if ( code.startsWith( "V" ) && code.length() <= 6 )
-            {
-                // V = version code
-                info.setTitle( getString( R.string.infoVersion_title, code.substring(1) ) );
-                info.setSummary( getString( R.string.infoVersion_summary ) );
-            }
-            else if ( code.startsWith( "PAL" ) )
-            {
-                // PAL = PAL version
-                info.setTitle( getString( R.string.infoPAL_title ) );
-                info.setSummary( getString( R.string.infoPAL_summary ) );
-            }
-            else if ( code.startsWith( "PAL-NTSC" ) )
-            {
-                // PAL-NTSC = PAL and NTSC compatible
-                info.setTitle( getString( R.string.infoPALNTSC_title ) );
-                info.setSummary( getString( R.string.infoPALNTSC_summary ) );
-            }
-            else if ( code.startsWith( "NTSC" ) )
-            {
-                // NTSC = NTSC version
-                info.setTitle( getString( R.string.infoNTSC_title ) );
-                info.setSummary( getString( R.string.infoNTSC_summary ) );
-            }
-            else
-            {
-                // Everything else is listed raw and treated as a hack
-                info.setTitle( code );
-                info.setSummary( getString( R.string.infoHack_summary ) );
-            }
-            
-            if ( info != null )
-                prefs.add( info );
-            
-            index = endIndex + 1;
-        }
-        
-        if ( prefs.size() > 0 )
-        {
-            PreferenceCategory infoCategory = new PreferenceCategory( this );
-            infoCategory.setTitle( getString( R.string.categoryGameInfo_title ) );
-            getPreferenceScreen().addPreference( infoCategory ); 
-            
-            for ( Preference pref : prefs )
-            {
-                infoCategory.addPreference( pref );
-            }
         }
         
         // Build the cheats category as needed
@@ -545,26 +336,7 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
     public boolean onPreferenceClick( Preference preference )
     {
         String key = preference.getKey();
-        if( key.equals( ACTION_RESUME ) )
-        {
-            launchGame( false );
-            return true;
-        }
-        else if( key.equals( ACTION_RESTART ) )
-        {
-            CharSequence title = getText( R.string.confirm_title );
-            CharSequence message = getText( R.string.confirmResetGame_message );
-            Prompt.promptConfirm( this, title, message, new PromptConfirmListener()
-            {
-                @Override
-                public void onConfirm()
-                {
-                    launchGame( true );
-                }
-            } );
-            return true;
-        }
-        else if( key.equals( ACTION_CHEAT_EDITOR ) )
+        if( key.equals( ACTION_CHEAT_EDITOR ) )
         {
             Intent intent = new Intent( this, CheatEditorActivity.class );
             intent.putExtra( Keys.Extras.ROM_PATH, mRomPath );
@@ -577,12 +349,6 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         else if( key.equals( ACTION_RESET_GAME_PREFS ) )
         {
             actionResetGamePrefs();
-        }
-        else if( key.equals( ACTION_GLOBAL_SETTINGS ) )
-        {
-            Intent intent = new Intent( this, SettingsGlobalActivity.class );
-            intent.putExtra( Keys.Extras.MENU_DISPLAY_MODE, 2 );
-            startActivity( intent );
         }
         return false;
     }

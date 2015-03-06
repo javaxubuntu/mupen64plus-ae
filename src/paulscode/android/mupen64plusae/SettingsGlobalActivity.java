@@ -115,6 +115,10 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
             if( mode == 1 )
             {
                 // Remove distractions if this was launched from TouchscreenProfileActivity
+                Preference preference = findPreference(CATEGORY_LIBRARY);
+                PreferenceScreen preferenceScreen = getPreferenceScreen();
+                preferenceScreen.removePreference(preference);
+                
                 PrefUtil.removePreference( this, SCREEN_ROOT, "categoryAudio" );
                 PrefUtil.removePreference( this, SCREEN_ROOT, SCREEN_TOUCHPAD );
                 PrefUtil.removePreference( this, SCREEN_ROOT, SCREEN_INPUT );
@@ -128,13 +132,6 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
                 PrefUtil.removePreference( this, SCREEN_DISPLAY, VIDEO_POLYGON_OFFSET );
                 PrefUtil.removePreference( this, SCREEN_TOUCHSCREEN, TOUCHSCREEN_FEEDBACK );
                 PrefUtil.removePreference( this, SCREEN_TOUCHSCREEN, TOUCHSCREEN_AUTO_HOLD );
-            }
-            if( mode == 1 || mode == 2 )
-            {
-                // Remove distractions if this was launched from TouchscreenProfileActivity or PlayMenuActivity
-                Preference preference = findPreference(CATEGORY_LIBRARY);
-                PreferenceScreen preferenceScreen = getPreferenceScreen();
-                preferenceScreen.removePreference(preference);
             }
         }
     }

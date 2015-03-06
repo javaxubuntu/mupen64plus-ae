@@ -236,8 +236,8 @@
     <string name="screenVideo_summary">Graphics settings</string>
     <string name="screenAdvanced_title">Advanced</string>
     <string name="screenAdvanced_summary">Core, storage, and debug settings</string>
-    <string name="screenGlobalSettings_title">Global settings</string>
-    <string name="screenGlobalSettings_summary">Display, audio, storage, and debug settings</string>
+    <string name="screenGameSettings_title">Settings</string>
+    <string name="screenGameSettings_summary">Emulation, touchscreen, controller, multi-player, and cheat settings</string>
     <string name="screenCheats_title">Cheats</string>
     <string name="screenCheats_summaryEnabled">Enabled</string>
     <string name="screenCheats_summaryDisabled">Disabled</string>
@@ -255,7 +255,7 @@
     <string name="categoryAudio_title">Audio</string>
     <string name="categoryData_title">Data</string>
     <string name="categoryLibrary_title">Library</string>
-    <string name="categoryGameSettings_title">Game-specific settings</string>
+    <string name="categoryGameSettings_title">Game settings</string>
     <string name="categoryGameSettings_titleNamed">%1$s settings</string>
 
     <!-- Checkbox Preferences -->
