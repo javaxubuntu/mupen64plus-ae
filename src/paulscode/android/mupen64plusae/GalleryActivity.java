@@ -530,7 +530,10 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     {
         if ( keyCode == KeyEvent.KEYCODE_MENU )
         {
-            drawerLayout.openDrawer( GravityCompat.START );
+            if ( drawerLayout.isDrawerOpen( GravityCompat.START ) )
+                drawerLayout.closeDrawer( GravityCompat.START );
+            else
+                drawerLayout.openDrawer( GravityCompat.START );
             return true;
         }
         return super.onKeyDown( keyCode, event );
@@ -540,13 +543,9 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     public void onBackPressed()
     {
         if ( drawerLayout.isDrawerOpen( GravityCompat.START ) )
-        {
             drawerLayout.closeDrawer( GravityCompat.START );
-        }
         else
-        {
             super.onBackPressed();
-        }
     }
     
     @Override
@@ -790,5 +789,8 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         // Refresh the action bar
         if( AppData.IS_HONEYCOMB )
             invalidateOptionsMenu();
+        
+        // Refresh the gallery
+        refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
     }
 }
