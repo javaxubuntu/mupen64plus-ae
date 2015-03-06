@@ -224,7 +224,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         
         // Configure the navigation drawer
         mDrawerLayout = (DrawerLayout) findViewById( R.id.drawerLayout );
-        mDrawerToggle = new ActionBarDrawerToggle( this, mDrawerLayout, toolbar, R.string.app_name, R.string.app_name )
+        mDrawerToggle = new ActionBarDrawerToggle( this, mDrawerLayout, toolbar, 0, 0 )
         {
             @Override
             public void onDrawerClosed( View drawerView )
@@ -881,32 +881,34 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         if( startDir == null || !startDir.exists() )
             startDir = new File( Environment.getExternalStorageDirectory().getAbsolutePath() );
         
-        ScanRomsDialog dialog = new ScanRomsDialog( this, startDir,
-                new ScanRomsDialogListener()
+        ScanRomsDialog dialog = new ScanRomsDialog( this, startDir, false, new ScanRomsDialogListener()
+        {
+            @Override
+            public void onDialogClosed( File file, int which )
+            {
+                if( which == DialogInterface.BUTTON_POSITIVE )
                 {
-                    @Override
-                    public void onDialogClosed( File file, int which )
+                    // Add this directory to the list of ROMs folders to search
+                    mUserPrefs.addRomsFolder( file.getAbsolutePath() );
+                    
+                    // Search this folder for ROMs
+                    refreshRoms( file );
+                }
+                else if( file != null )
+                {
+                    if( file.isDirectory() )
                     {
-                        if( which == DialogInterface.BUTTON_POSITIVE )
-                        {
-                            // The user selected a directory
-                            refreshRoms( file );
-                        }
-                        else if( file != null )
-                        {
-                            if( file.isDirectory() )
-                            {
-                                // Clicking the Cancel button will set file to null, so this means they chose Parent Directory
-                                promptSearchPath( file );
-                            }
-                            else
-                            {
-                                // The user selected an individual file
-                                refreshRoms( file );
-                            }
-                        }
+                        promptSearchPath( file );
                     }
-                } );
+                    else
+                    {
+                        // The user selected an individual file
+                        refreshRoms( file );
+                    }
+                }
+            }
+        });
+        
         dialog.show();
     }
     

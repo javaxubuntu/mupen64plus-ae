@@ -20,10 +20,13 @@
  */
 package paulscode.android.mupen64plusae.persistent;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.lang.StringBuilder;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.WordUtils;
@@ -85,7 +88,7 @@ import android.view.WindowManager;
 public class UserPrefs
 {
     /** The user-selected directories containing the game ROMs. */
-    public final String[] romsDirs;
+    public String[] romsDirs;
     
     /** The parent directory containing all user-writable data files. */
     public final String userDataDir;
@@ -231,6 +234,7 @@ public class UserPrefs
     private static final String KEY_CLEAR_GALLERY = "clearGallery";
     private static final String KEY_SHOW_RECENTLY_PLAYED = "showRecentlyPlayed";
     private static final String KEY_SHOW_FULL_NAMES = "showFullNames";
+    private static final String KEY_ROMS_DIRS = "pathRomsDirs";
     // ... add more as needed
     
     // Shared preferences default values
@@ -294,7 +298,7 @@ public class UserPrefs
         mLocaleCodes = values;
         
         // Files
-        romsDirs = mPreferences.getString( "pathRomsDirs", "!Downloads" ).split( "\n" );
+        romsDirs = mPreferences.getString( KEY_ROMS_DIRS, "!Downloads" ).split( ":" );
         userDataDir = mPreferences.getString( "pathGameSaves", "" );
         galleryCacheDir = userDataDir + "/GalleryCache";
         coverArtDir = galleryCacheDir + "/CoverArt";
@@ -513,6 +517,69 @@ public class UserPrefs
                 }
             }
         }
+    }
+    
+    protected void saveRomsFolders()
+    {
+        StringBuilder builder = new StringBuilder();
+        for ( String dir : romsDirs )
+        {
+            if ( builder.length() != 0 )
+                builder.append( ":" );
+            builder.append( dir );
+        }
+        
+        putString( KEY_ROMS_DIRS, builder.toString() );
+    }
+    
+    public void addRomsFolder( String addFolder )
+    {
+        List<String> folders = new ArrayList<String>();
+        folders.addAll( Arrays.asList( romsDirs ) );
+        
+        // Don't add this folder if it is contained within one of the existing folders
+        for ( Iterator<String> iter = folders.listIterator(); iter.hasNext(); )
+        {
+            String folder = iter.next();
+            if ( addFolder.startsWith( folder ) )
+                return;
+        }
+        
+        // Remove any existing folders that are contained within this folder
+        for ( Iterator<String> iter = folders.listIterator(); iter.hasNext(); )
+        {
+            String folder = iter.next();
+            if ( folder.startsWith( addFolder ) )
+                iter.remove();
+        }
+        
+        folders.add( addFolder );
+        Collections.sort( folders );
+        
+        romsDirs = folders.toArray( new String[ folders.size() ] );
+        saveRomsFolders();
+    }
+    
+    public void removeRomsFolder( String removeFolder )
+    {
+        // Don't allow the user to remove the last folder; only editing is allowed
+        if ( romsDirs.length <= 1 ) return;
+        
+        List<String> folders = new ArrayList<String>();
+        folders.addAll( Arrays.asList( romsDirs ) );
+        
+        for ( Iterator<String> iter = folders.listIterator(); iter.hasNext(); )
+        {
+            String folder = iter.next();
+            if ( folder.equals( removeFolder ) )
+            {
+                iter.remove();
+                break;
+            }
+        }
+        
+        romsDirs = folders.toArray( new String[ folders.size() ] );
+        saveRomsFolders();
     }
     
     public void enforceLocale( Activity activity )

@@ -21,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 public class ScanRomsDialog implements OnClickListener, OnItemClickListener
 {
@@ -42,11 +43,13 @@ public class ScanRomsDialog implements OnClickListener, OnItemClickListener
     private final List<String> mPaths;
     private final AlertDialog mDialog;
     private final File mStartPath;
+    private final Activity mActivity;
     
     @SuppressLint( "InflateParams" )
-    public ScanRomsDialog( Activity activity, File startPath, ScanRomsDialogListener listener )
+    public ScanRomsDialog( Activity activity, File startPath, boolean selectingFolder, ScanRomsDialogListener listener )
     {
         mListener = listener;
+        mActivity = activity;
         
         // Pick the root of the storage directory by default
         if( startPath == null || !startPath.exists() )
@@ -56,12 +59,18 @@ public class ScanRomsDialog implements OnClickListener, OnItemClickListener
         // Get the filenames and absolute paths
         mNames = new ArrayList<CharSequence>();
         mPaths = new ArrayList<String>();
-        FileUtil.populate( startPath, true, true, true, mNames, mPaths );
+        FileUtil.populate( startPath, true, true, !selectingFolder, mNames, mPaths );
         
         // Inflate layout
         final LayoutInflater inflater = (LayoutInflater) activity
                 .getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         View layout = inflater.inflate( R.layout.scan_roms_dialog, null );
+        
+        if ( selectingFolder )
+        {
+            TextView summaryText = (TextView) layout.findViewById( R.id.text1 );
+            summaryText.setText( mActivity.getString( R.string.selectFolder_summary ) );
+        }
         
         // Populate the file list
         ListView listView1 = (ListView) layout.findViewById( R.id.listView1 );
