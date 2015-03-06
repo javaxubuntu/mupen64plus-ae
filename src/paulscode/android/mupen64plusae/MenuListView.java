@@ -109,7 +109,7 @@ public class MenuListView extends ExpandableListView
                 if ( submenu == null )
                 {
                     if ( mListener != null )
-                        return mListener.onClick( menuItem );
+                        mListener.onClick( menuItem );
                 }
                 return false;
             }
@@ -122,7 +122,7 @@ public class MenuListView extends ExpandableListView
             {
                 MenuItem menuItem = mListData.getItem( groupPosition ).getSubMenu().getItem( childPosition );
                 if ( mListener != null )
-                    return mListener.onClick( menuItem );
+                    mListener.onClick( menuItem );
                 return false;
             }
         });
@@ -180,15 +180,17 @@ public class MenuListView extends ExpandableListView
             LayoutInflater inflater = (LayoutInflater) mListView.getContext().getSystemService( Context.LAYOUT_INFLATER_SERVICE );
             View view = convertView;
             if( view == null )
-                view = inflater.inflate( R.layout.list_item_text_icon, null );
+                view = inflater.inflate( R.layout.list_item_two_text_icon, null );
             
             MenuItem item = getChild( groupPosition, childPosition );
             if( item != null )
             {
-                TextView text = (TextView) view.findViewById( R.id.text1 );
+                TextView text1 = (TextView) view.findViewById( R.id.text1 );
+                TextView text2 = (TextView) view.findViewById( R.id.text2 );
                 ImageView icon = (ImageView) view.findViewById( R.id.icon );
                 
-                text.setText( item.getTitle() );
+                text1.setText( item.getTitle() );
+                text2.setVisibility( View.GONE );
                 icon.setImageDrawable( item.getIcon() );
             }
             return view;
@@ -217,15 +219,17 @@ public class MenuListView extends ExpandableListView
             LayoutInflater inflater = (LayoutInflater) mListView.getContext().getSystemService( Context.LAYOUT_INFLATER_SERVICE );
             View view = convertView;
             if( view == null )
-                view = inflater.inflate( R.layout.list_item_text_icon, null );
+                view = inflater.inflate( R.layout.list_item_two_text_icon, null );
             
             MenuItem item = getGroup( groupPosition );
             if( item != null )
             {
-                TextView text = (TextView) view.findViewById( R.id.text1 );
+                TextView text1 = (TextView) view.findViewById( R.id.text1 );
+                TextView text2 = (TextView) view.findViewById( R.id.text2 );
                 ImageView icon = (ImageView) view.findViewById( R.id.icon );
                 
-                text.setText( item.getTitle() );
+                text1.setText( item.getTitle() );
+                text2.setVisibility( View.GONE );
                 icon.setImageDrawable( item.getIcon() );
             }
             return view;
@@ -243,9 +247,8 @@ public class MenuListView extends ExpandableListView
         {
         }
         
-        public boolean onClick( MenuItem menuItem )
+        public void onClick( MenuItem menuItem )
         {
-            return false;
         }
     }
 }

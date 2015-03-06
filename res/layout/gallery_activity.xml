@@ -50,7 +50,8 @@
             <paulscode.android.mupen64plusae.MenuListView
                 android:id="@+id/left_drawer"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:background="#000" />
         </RelativeLayout>
 
     </android.support.v4.widget.DrawerLayout>
