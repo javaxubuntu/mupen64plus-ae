@@ -182,6 +182,16 @@
                 android:name="android.app.lib_name"
                 android:value="xperia-touchpad" />
         </activity>
+        <activity
+            android:name="paulscode.android.mupen64plusae.preference.RomsFoldersActivity"
+            android:exported="false"
+            android:label="@string/RomsFoldersActivity_title" >
+            <intent-filter>
+                <action android:name=".preference.RomsFoldersActivity" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <meta-data
             android:name="xperiaplayoptimized_content"

@@ -102,6 +102,7 @@
     <string name="listItem_rename">Rename</string>
     <string name="listItem_copy">Copy</string>
     <string name="listItem_delete">Delete</string>
+    <string name="listItem_remove">Remove</string>
     <string name="listItem_disabled">(Disabled)</string>
 
     <!-- ManageProfilesActivity Name/Comment Dialog -->
@@ -424,6 +425,7 @@
     <string name="pathHiResTextures_summary">Apply custom textures (ZIP format) to a game</string>
     <string name="pathHiResTextures_default">~</string>
     <string name="pathRomsDirs_title">ROMs folders</string>
+    <string name="pathRomsDirs_summary">Select folders to search for ROMs when updating the library</string>
     <string name="pathRomsDirs_default">!Downloads</string>
     <string name="pathGameSaves_title">Game save folder</string>
     <string name="pathGameSaves_default">!mupen64plusae-v3-alpha</string>
@@ -453,13 +455,14 @@
     <string name="confirmOverwriteFile_message">Overwrite %1$s?</string>
     <string name="confirmUnmapAll_message">Unmap all inputs for %1$s?</string>
     <string name="confirmDeleteProfile_message">Delete profile \"%1$s\"?</string>
+    <string name="confirmRemoveFolder_message">Remove folder \"%1$s\"?</string>
 
     <!-- Change Log -->
     <string name="changeLog_dialogTitle">Change log</string>
 
     <!-- Corrupt Installation Warning -->
     <string name="invalidInstall_title">Warning</string>
-    <string name="invalidInstall_message">Mupen64 Plus AE might not have installed properly. Please try reinstalling the app if you experience any crashes.</string>
+    <string name="invalidInstall_message">Mupen64Plus AE might not have installed properly. Please try reinstalling the app if you experience any crashes.</string>
 
     <!-- Text Editor Hints (start lower-case) -->
     <string name="hintFileSave">filename</string>
@@ -526,6 +529,7 @@
     <!-- ROM Scanning -->
     <string name="scanning_title">Updating library…</string>
     <string name="addToLibrary_summary">Select a file or folder to add to the library</string>
+    <string name="selectFolder_summary">Select a folder to search when updating the library</string>
     
     <!-- ROM information calculation -->
     <string name="cacheRomInfo_searching">Searching…</string>

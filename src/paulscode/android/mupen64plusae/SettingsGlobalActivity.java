@@ -27,6 +27,7 @@ import paulscode.android.mupen64plusae.dialog.Prompt.PromptConfirmListener;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
 import paulscode.android.mupen64plusae.preference.PrefUtil;
+import paulscode.android.mupen64plusae.preference.RomsFoldersActivity;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -66,6 +67,7 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
     private static final String TOUCHSCREEN_FEEDBACK = "touchscreenFeedback";
     private static final String TOUCHSCREEN_AUTO_HOLD = "touchscreenAutoHold";
     private static final String NAVIGATION_MODE = "navigationMode";
+    private static final String ROMS_DIRS = "pathRomsDirs";
     
     private static final String ACTION_RELOAD_ASSETS = "actionReloadAssets";
     private static final String ACTION_RESET_USER_PREFS = "actionResetUserPrefs";
@@ -96,6 +98,7 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
         // Handle certain menu items that require extra processing or aren't actually preferences
         PrefUtil.setOnPreferenceClickListener( this, ACTION_RELOAD_ASSETS, this );
         PrefUtil.setOnPreferenceClickListener( this, ACTION_RESET_USER_PREFS, this );
+        PrefUtil.setOnPreferenceClickListener( this, ROMS_DIRS, this );
         
         // Hide certain categories altogether if they're not applicable. Normally we just rely on
         // the built-in dependency disabler, but here the categories are so large that hiding them
@@ -192,6 +195,9 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
         
         else if( key.equals( ACTION_RESET_USER_PREFS ) )
             actionResetUserPrefs();
+        
+        else if( key.equals( ROMS_DIRS ) )
+            startActivity( new Intent( this, RomsFoldersActivity.class ) );
         
         else
             // Let Android handle all other preference clicks
