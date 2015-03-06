@@ -162,7 +162,7 @@ public class RomsFoldersActivity extends ListActivity
                 if( which == DialogInterface.BUTTON_POSITIVE )
                 {
                     if ( oldFolder != null )
-                        mUserPrefs.removeRomsFolder( oldFolder );
+                        mUserPrefs.removeRomsFolder( oldFolder, true );
                     
                     mUserPrefs.addRomsFolder( file.getAbsolutePath() );
                     refreshList();
@@ -187,7 +187,7 @@ public class RomsFoldersActivity extends ListActivity
             @Override
             public void onConfirm()
             {
-                mUserPrefs.removeRomsFolder( finalFolder );
+                mUserPrefs.removeRomsFolder( finalFolder, false );
                 refreshList();
             }
         } );

@@ -560,10 +560,10 @@ public class UserPrefs
         saveRomsFolders();
     }
     
-    public void removeRomsFolder( String removeFolder )
+    public void removeRomsFolder( String removeFolder, boolean forceRemove )
     {
         // Don't allow the user to remove the last folder; only editing is allowed
-        if ( romsDirs.length <= 1 ) return;
+        if ( romsDirs.length <= 1 && !forceRemove ) return;
         
         List<String> folders = new ArrayList<String>();
         folders.addAll( Arrays.asList( romsDirs ) );
