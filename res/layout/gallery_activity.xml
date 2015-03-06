@@ -4,29 +4,36 @@
     android:orientation="vertical"
     android:layout_height="match_parent">
 
-    <include layout="@layout/toolbar" />
-
     <android.support.v4.widget.DrawerLayout
         android:layout_width="match_parent"
         android:id="@+id/drawerLayout"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true" >
 
         <!-- activity view -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/gridview"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingLeft="@dimen/galleryHalfSpacing"
-                android:paddingRight="@dimen/galleryHalfSpacing"
-                android:paddingTop="@dimen/galleryHalfSpacing"
-                android:paddingBottom="40dip"
-                android:clipToPadding="false"
-                android:gravity="center" />
+                android:orientation="vertical" >
 
+                <include layout="@layout/toolbar" />
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/gridview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="@dimen/galleryHalfSpacing"
+                    android:paddingRight="@dimen/galleryHalfSpacing"
+                    android:paddingTop="@dimen/galleryHalfSpacing"
+                    android:paddingBottom="40dip"
+                    android:clipToPadding="false"
+                    android:gravity="center" />
+            </LinearLayout>
+            
             <ImageButton
                 android:layout_width="56dip"
                 android:layout_height="56dip"
@@ -45,13 +52,15 @@
         <RelativeLayout
             android:layout_gravity="left|start"
             android:layout_width="260dip"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true" >
 
             <paulscode.android.mupen64plusae.MenuListView
                 android:id="@+id/left_drawer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#000" />
+                android:background="#000"
+                android:paddingTop="20dip" />
         </RelativeLayout>
 
     </android.support.v4.widget.DrawerLayout>

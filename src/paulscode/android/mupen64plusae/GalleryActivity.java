@@ -99,9 +99,9 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     
     // Widgets
     private RecyclerView mGridView;
-    private DrawerLayout drawerLayout;
-    private ActionBarDrawerToggle drawerToggle;
-    private MenuListView drawerList;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private MenuListView mDrawerList;
     private ImageButton mActionButton;
     private MenuItem mSearchItem;
     private MenuItem mRefreshItem;
@@ -208,8 +208,8 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         setSupportActionBar( toolbar );
         
         // Configure the navigation drawer
-        drawerLayout = (DrawerLayout) findViewById( R.id.drawerLayout );
-        drawerToggle = new ActionBarDrawerToggle( this, drawerLayout, toolbar, R.string.app_name, R.string.app_name )
+        mDrawerLayout = (DrawerLayout) findViewById( R.id.drawerLayout );
+        mDrawerToggle = new ActionBarDrawerToggle( this, mDrawerLayout, toolbar, R.string.app_name, R.string.app_name )
         {
             @Override
             public void onDrawerClosed( View drawerView )
@@ -227,19 +227,23 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 super.onDrawerOpened( drawerView );
             }
         };
-        drawerLayout.setDrawerListener( drawerToggle );
+        mDrawerLayout.setDrawerListener( mDrawerToggle );
         
         // Configure the list in the navigation drawer
         final Activity activity = this;
-        drawerList = (MenuListView) findViewById( R.id.left_drawer );
-        drawerList.setMenuResource( R.menu.gallery_drawer );
-        drawerList.setOnClickListener( new MenuListView.OnClickListener()
+        mDrawerList = (MenuListView) findViewById( R.id.left_drawer );
+        mDrawerList.setMenuResource( R.menu.gallery_drawer );
+        mDrawerList.setSelectedGroup( 0 );
+        mDrawerList.setOnClickListener( new MenuListView.OnClickListener()
         {
             @Override
             public void onClick( MenuItem menuItem )
             {
                 switch( menuItem.getItemId() )
                 {
+                    case R.id.menuItem_library:
+                        mDrawerLayout.closeDrawer( GravityCompat.START );
+                        break;
                     case R.id.menuItem_globalSettings:
                         startActivity( new Intent( activity, SettingsGlobalActivity.class ) );
                         break;
@@ -393,21 +397,21 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     protected void onPostCreate( Bundle savedInstanceState )
     {
         super.onPostCreate( savedInstanceState );
-        drawerToggle.syncState();
+        mDrawerToggle.syncState();
     }
     
     @Override
     public void onConfigurationChanged( Configuration newConfig )
     {
         super.onConfigurationChanged( newConfig );
-        drawerToggle.onConfigurationChanged( newConfig );
+        mDrawerToggle.onConfigurationChanged( newConfig );
     }
     
     @Override
     public boolean onCreateOptionsMenu( Menu menu )
     {
         // Remove the toolbar items when the navigation drawer is open
-        if ( drawerLayout != null && drawerLayout.isDrawerOpen( GravityCompat.START ) )
+        if ( mDrawerLayout != null && mDrawerLayout.isDrawerOpen( GravityCompat.START ) )
             return super.onCreateOptionsMenu( menu );
         
         getMenuInflater().inflate( R.menu.gallery_activity, menu );
@@ -529,10 +533,10 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     {
         if ( keyCode == KeyEvent.KEYCODE_MENU )
         {
-            if ( drawerLayout.isDrawerOpen( GravityCompat.START ) )
-                drawerLayout.closeDrawer( GravityCompat.START );
+            if ( mDrawerLayout.isDrawerOpen( GravityCompat.START ) )
+                mDrawerLayout.closeDrawer( GravityCompat.START );
             else
-                drawerLayout.openDrawer( GravityCompat.START );
+                mDrawerLayout.openDrawer( GravityCompat.START );
             return true;
         }
         return super.onKeyDown( keyCode, event );
@@ -541,8 +545,8 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     @Override
     public void onBackPressed()
     {
-        if ( drawerLayout.isDrawerOpen( GravityCompat.START ) )
-            drawerLayout.closeDrawer( GravityCompat.START );
+        if ( mDrawerLayout.isDrawerOpen( GravityCompat.START ) )
+            mDrawerLayout.closeDrawer( GravityCompat.START );
         else
             super.onBackPressed();
     }
