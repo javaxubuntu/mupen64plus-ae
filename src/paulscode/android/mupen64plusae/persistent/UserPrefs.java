@@ -36,6 +36,7 @@ import paulscode.android.mupen64plusae.jni.NativeConstants;
 import paulscode.android.mupen64plusae.persistent.AppData.HardwareInfo;
 import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
 import paulscode.android.mupen64plusae.profile.Profile;
+import paulscode.android.mupen64plusae.preference.RomsFolder;
 import paulscode.android.mupen64plusae.util.Plugin;
 import paulscode.android.mupen64plusae.util.SafeMethods;
 import android.annotation.SuppressLint;
@@ -88,7 +89,7 @@ import android.view.WindowManager;
 public class UserPrefs
 {
     /** The user-selected directories containing the game ROMs. */
-    public String[] romsDirs;
+    public RomsFolder[] romsDirs;
     
     /** The parent directory containing all user-writable data files. */
     public final String userDataDir;
@@ -229,12 +230,12 @@ public class UserPrefs
     private static final String KEYTEMPLATE_PAK_TYPE = "inputPakType%1$d";
     private static final String KEY_PLAYER_MAP_REMINDER = "playerMapReminder";
     private static final String KEY_LOCALE_OVERRIDE = "localeOverride";
-    private static final String KEY_SEARCH_ZIPS = "searchZips";
     private static final String KEY_DOWNLOAD_ART = "downloadArt";
     private static final String KEY_CLEAR_GALLERY = "clearGallery";
     private static final String KEY_SHOW_RECENTLY_PLAYED = "showRecentlyPlayed";
     private static final String KEY_SHOW_FULL_NAMES = "showFullNames";
     private static final String KEY_ROMS_DIRS = "pathRomsDirs";
+    private static final String KEY_ROMS_DIRS_SEARCH_ZIPS = "pathRomsDirsSearchZips";
     // ... add more as needed
     
     // Shared preferences default values
@@ -244,7 +245,6 @@ public class UserPrefs
     public static final int DEFAULT_PAK_TYPE = NativeConstants.PAK_TYPE_MEMORY;
     public static final boolean DEFAULT_PLAYER_MAP_REMINDER = true;
     public static final String DEFAULT_LOCALE_OVERRIDE = "";
-    public static final boolean DEFAULT_SEARCH_ZIPS = true;
     public static final boolean DEFAULT_DOWNLOAD_ART = true;
     public static final boolean DEFAULT_CLEAR_GALLERY = true;
     public static final boolean DEFAULT_SHOW_RECENTLY_PLAYED = true;
@@ -297,8 +297,20 @@ public class UserPrefs
         mLocaleNames = entries;
         mLocaleCodes = values;
         
+        // Parse out the ROMs folders settings
+        String[] paths = mPreferences.getString( KEY_ROMS_DIRS, "!Downloads" ).split( ":" );
+        String[] searchZips = mPreferences.getString( KEY_ROMS_DIRS_SEARCH_ZIPS, "1" ).split( ":" );
+        List<RomsFolder> folders = new ArrayList<RomsFolder>();
+        for ( int pathIndex = 0; pathIndex < paths.length; pathIndex++ )
+        {
+            boolean searchZip = false;
+            if ( pathIndex < searchZips.length )
+                searchZip = searchZips[ pathIndex ].equals( "1" );
+            folders.add( new RomsFolder( paths[ pathIndex ], searchZip ) );
+        }
+        romsDirs = folders.toArray( new RomsFolder[ folders.size() ] );
+        
         // Files
-        romsDirs = mPreferences.getString( KEY_ROMS_DIRS, "!Downloads" ).split( ":" );
         userDataDir = mPreferences.getString( "pathGameSaves", "" );
         galleryCacheDir = userDataDir + "/GalleryCache";
         coverArtDir = galleryCacheDir + "/CoverArt";
@@ -521,64 +533,73 @@ public class UserPrefs
     
     protected void saveRomsFolders()
     {
-        StringBuilder builder = new StringBuilder();
-        for ( String dir : romsDirs )
+        StringBuilder pathBuilder = new StringBuilder();
+        StringBuilder zipBuilder = new StringBuilder();
+        for ( RomsFolder dir : romsDirs )
         {
-            if ( builder.length() != 0 )
-                builder.append( ":" );
-            builder.append( dir );
+            if ( pathBuilder.length() != 0 )
+                pathBuilder.append( ":" );
+            pathBuilder.append( dir.path );
+            
+            if ( zipBuilder.length() != 0 )
+                zipBuilder.append( ":" );
+            if ( dir.searchZips )
+                zipBuilder.append( "1" );
+            else
+                zipBuilder.append( "0" );
         }
         
-        putString( KEY_ROMS_DIRS, builder.toString() );
+        putString( KEY_ROMS_DIRS, pathBuilder.toString() );
+        putString( KEY_ROMS_DIRS_SEARCH_ZIPS, zipBuilder.toString() );
     }
     
-    public void addRomsFolder( String addFolder )
+    public void addRomsFolder( RomsFolder addFolder )
     {
-        List<String> folders = new ArrayList<String>();
+        List<RomsFolder> folders = new ArrayList<RomsFolder>();
         folders.addAll( Arrays.asList( romsDirs ) );
         
         // Don't add this folder if it is contained within one of the existing folders
-        for ( Iterator<String> iter = folders.listIterator(); iter.hasNext(); )
+        for ( Iterator<RomsFolder> iter = folders.listIterator(); iter.hasNext(); )
         {
-            String folder = iter.next();
-            if ( addFolder.startsWith( folder ) )
+            RomsFolder folder = iter.next();
+            if ( addFolder.path.startsWith( folder.path ) )
                 return;
         }
         
         // Remove any existing folders that are contained within this folder
-        for ( Iterator<String> iter = folders.listIterator(); iter.hasNext(); )
+        for ( Iterator<RomsFolder> iter = folders.listIterator(); iter.hasNext(); )
         {
-            String folder = iter.next();
-            if ( folder.startsWith( addFolder ) )
+            RomsFolder folder = iter.next();
+            if ( folder.path.startsWith( addFolder.path ) )
                 iter.remove();
         }
         
         folders.add( addFolder );
         Collections.sort( folders );
         
-        romsDirs = folders.toArray( new String[ folders.size() ] );
+        romsDirs = folders.toArray( new RomsFolder[ folders.size() ] );
         saveRomsFolders();
     }
     
-    public void removeRomsFolder( String removeFolder, boolean forceRemove )
+    public void removeRomsFolder( RomsFolder removeFolder, boolean forceRemove )
     {
         // Don't allow the user to remove the last folder; only editing is allowed
         if ( romsDirs.length <= 1 && !forceRemove ) return;
         
-        List<String> folders = new ArrayList<String>();
+        List<RomsFolder> folders = new ArrayList<RomsFolder>();
         folders.addAll( Arrays.asList( romsDirs ) );
         
-        for ( Iterator<String> iter = folders.listIterator(); iter.hasNext(); )
+        for ( Iterator<RomsFolder> iter = folders.listIterator(); iter.hasNext(); )
         {
-            String folder = iter.next();
-            if ( folder.equals( removeFolder ) )
+            RomsFolder folder = iter.next();
+            if ( folder.path.equals( removeFolder.path ) )
             {
                 iter.remove();
                 break;
             }
         }
         
-        romsDirs = folders.toArray( new String[ folders.size() ] );
+        romsDirs = folders.toArray( new RomsFolder[ folders.size() ] );
         saveRomsFolders();
     }
     
@@ -640,11 +661,6 @@ public class UserPrefs
     public boolean getPlayerMapReminder()
     {
         return getBoolean( KEY_PLAYER_MAP_REMINDER, DEFAULT_PLAYER_MAP_REMINDER );
-    }
-    
-    public boolean getSearchZips()
-    {
-        return getBoolean( KEY_SEARCH_ZIPS, DEFAULT_SEARCH_ZIPS );
     }
     
     public boolean getDownloadArt()

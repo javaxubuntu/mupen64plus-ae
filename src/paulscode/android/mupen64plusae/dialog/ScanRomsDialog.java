@@ -21,7 +21,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.CheckBox;
 
 public class ScanRomsDialog implements OnClickListener, OnItemClickListener
 {
@@ -35,7 +35,7 @@ public class ScanRomsDialog implements OnClickListener, OnItemClickListener
          * negative button.
          * @param which The DialogInterface button pressed by the user.
          */
-        public void onDialogClosed( File file, int which );
+        public void onDialogClosed( File file, int which, boolean searchZips );
     }
     
     private final ScanRomsDialogListener mListener;
@@ -44,9 +44,10 @@ public class ScanRomsDialog implements OnClickListener, OnItemClickListener
     private final AlertDialog mDialog;
     private final File mStartPath;
     private final Activity mActivity;
+    private final CheckBox mCheckBox1;
     
     @SuppressLint( "InflateParams" )
-    public ScanRomsDialog( Activity activity, File startPath, boolean selectingFolder, ScanRomsDialogListener listener )
+    public ScanRomsDialog( Activity activity, File startPath, boolean selectingFolder, boolean searchZips, ScanRomsDialogListener listener )
     {
         mListener = listener;
         mActivity = activity;
@@ -66,11 +67,9 @@ public class ScanRomsDialog implements OnClickListener, OnItemClickListener
                 .getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         View layout = inflater.inflate( R.layout.scan_roms_dialog, null );
         
-        if ( selectingFolder )
-        {
-            TextView summaryText = (TextView) layout.findViewById( R.id.text1 );
-            summaryText.setText( mActivity.getString( R.string.selectFolder_summary ) );
-        }
+        // Set checkbox state
+        mCheckBox1 = (CheckBox) layout.findViewById( R.id.checkBox1 );
+        mCheckBox1.setChecked( searchZips );
         
         // Populate the file list
         ListView listView1 = (ListView) layout.findViewById( R.id.listView1 );
@@ -79,9 +78,13 @@ public class ScanRomsDialog implements OnClickListener, OnItemClickListener
         listView1.setOnItemClickListener( this );
         
         // Create the dialog
+        int resId = android.R.string.ok;
+        if ( !selectingFolder)
+            resId = R.string.addToLibrary;
+        
         Builder builder = new Builder( activity ).setTitle( startPath.getPath() )
                 .setCancelable( false ).setView( layout )
-                .setPositiveButton( android.R.string.ok, this )
+                .setPositiveButton( resId, this )
                 .setNegativeButton( android.R.string.cancel, this );
 
         mDialog = builder.create();
@@ -106,13 +109,14 @@ public class ScanRomsDialog implements OnClickListener, OnItemClickListener
     @Override
     public void onClick( DialogInterface dlg, int which )
     {
+        boolean check1 = mCheckBox1.isChecked();
         dismiss();
         
         if( which >= 0 && which < mNames.size() )
-            mListener.onDialogClosed( new File( mPaths.get( which ) ), which );
+            mListener.onDialogClosed( new File( mPaths.get( which ) ), which, check1 );
         else if( which == DialogInterface.BUTTON_POSITIVE )
-            mListener.onDialogClosed( mStartPath, which );
+            mListener.onDialogClosed( mStartPath, which, check1 );
         else
-            mListener.onDialogClosed( null, which );
+            mListener.onDialogClosed( null, which, check1 );
     }
 }
