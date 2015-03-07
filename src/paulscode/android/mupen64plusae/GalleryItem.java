@@ -253,6 +253,8 @@ public class GalleryItem
                 {
                     view.setClickable( false );
                     view.setLongClickable( false );
+                    view.setFocusable( false );
+                    view.setBackgroundResource( 0 );
                     linearLayout.setPadding( 0, 0, 0, 0 );
                     tv1.setPadding( 5, 10, 0, 0 );
                     tv1.setTextSize( TypedValue.COMPLEX_UNIT_DIP, 18.0f );
@@ -263,6 +265,8 @@ public class GalleryItem
                 {
                     view.setClickable( true );
                     view.setLongClickable( true );
+                    view.setFocusable( true );
+                    view.setBackgroundResource( android.R.drawable.list_selector_background );
                     linearLayout.setPadding( activity.galleryHalfSpacing, activity.galleryHalfSpacing, activity.galleryHalfSpacing, activity.galleryHalfSpacing );
                     tv1.setPadding( 0, 0, 0, 0 );
                     tv1.setTextSize( TypedValue.COMPLEX_UNIT_DIP, 13.0f );
