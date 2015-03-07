@@ -141,6 +141,16 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         final RomDatabase database = new RomDatabase( mDatabasePath );
         final ConfigFile config = new ConfigFile( mConfigPath );
         
+        Set<String> md5Set = config.keySet();
+        String[] md5s = md5Set.toArray( new String[ md5Set.size() ] );
+        
+        for ( String md5 : md5s )
+        {
+            ConfigSection section = config.get( md5 );
+            if ( section.get( "goodName" ) == null ) continue;
+            config.put( md5, "exists", null );
+        }
+        
         mProgress.setMaxProgress( files.size() );
         for( final File file : files )
         {
@@ -213,15 +223,15 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         boolean cancelled = isCancelled();
         
         // Remove ROM entries that no longer exist
-        Set<String> md5Set = config.keySet();
-        String[] md5s = md5Set.toArray( new String[ md5Set.size() ] );
+        md5Set = config.keySet();
+        md5Set.toArray( new String[ md5Set.size() ] );
         
         for ( String md5 : md5s )
         {
             ConfigSection section = config.get( md5 );
             if ( section.get( "goodName" ) == null ) continue;
             
-            if ( section.get( "exists" ) != null || cancelled || !( mUpdating && mClearGallery) )
+            if ( section.get( "exists" ) != null || cancelled || !( mUpdating && mClearGallery ) )
             {
                 // Remove the "exists" field
                 section.put( "exists", null );
