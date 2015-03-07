@@ -298,7 +298,7 @@ public class UserPrefs
         mLocaleCodes = values;
         
         // Parse out the ROMs folders settings
-        String[] paths = mPreferences.getString( KEY_ROMS_DIRS, "!Downloads" ).split( ":" );
+        String[] paths = mPreferences.getString( KEY_ROMS_DIRS, "" ).split( ":" );
         String[] searchZips = mPreferences.getString( KEY_ROMS_DIRS_SEARCH_ZIPS, "1" ).split( ":" );
         List<RomsFolder> folders = new ArrayList<RomsFolder>();
         for ( int pathIndex = 0; pathIndex < paths.length; pathIndex++ )
@@ -581,11 +581,8 @@ public class UserPrefs
         saveRomsFolders();
     }
     
-    public void removeRomsFolder( RomsFolder removeFolder, boolean forceRemove )
+    public void removeRomsFolder( RomsFolder removeFolder )
     {
-        // Don't allow the user to remove the last folder; only editing is allowed
-        if ( romsDirs.length <= 1 && !forceRemove ) return;
-        
         List<RomsFolder> folders = new ArrayList<RomsFolder>();
         folders.addAll( Arrays.asList( romsDirs ) );
         

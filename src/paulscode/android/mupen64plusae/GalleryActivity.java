@@ -50,10 +50,12 @@ import paulscode.android.mupen64plusae.util.DeviceUtil;
 import paulscode.android.mupen64plusae.util.Notifier;
 import paulscode.android.mupen64plusae.util.Utility;
 import paulscode.android.mupen64plusae.MenuListView;
+import paulscode.android.mupen64plusae.GalleryView;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
+import android.app.SearchManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -68,6 +70,7 @@ import android.widget.AdapterView;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.MenuItemCompat.OnActionExpandListener;
+import android.support.v4.internal.view.SupportMenuItem;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.SearchView.OnQueryTextListener;
 
@@ -107,12 +110,12 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     private UserPrefs mUserPrefs = null;
     
     // Widgets
-    private RecyclerView mGridView;
+    private GalleryView mGridView;
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private MenuListView mDrawerList;
     private ImageButton mActionButton;
-    private MenuItem mSearchItem;
+    private SupportMenuItem mSearchItem;
     private MenuItem mRefreshItem;
     private ScrollView mDrawerInfoScroll;
     private LinearLayout mDrawerOptionsLayout;
@@ -188,7 +191,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         
         // Lay out the content
         setContentView( R.layout.gallery_activity );
-        mGridView = (RecyclerView) findViewById( R.id.gridview );
+        mGridView = (GalleryView) findViewById( R.id.gridview );
         
         // Configure the Floating Action Button to add files or folders to the library
         mActionButton = (ImageButton) findViewById( R.id.add );
@@ -340,9 +343,9 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         galleryAspectRatio = galleryMaxWidth * 1.0f/getResources().getDimension( R.dimen.galleryImageHeight );
         
         // Update the grid size and spacing whenever the layout changes
-        mGridView.addOnLayoutChangeListener( new OnLayoutChangeListener()
+        mGridView.setOnLayoutChangeListener( new GalleryView.OnLayoutChangeListener()
         {
-            public void onLayoutChange( View view, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom )
+            public void onLayoutChange( View view, int left, int top, int right, int bottom )
             {
                 // Update the grid layout
                 int width = right - left - galleryHalfSpacing * 2;
@@ -351,7 +354,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 
                 GridLayoutManager layoutManager = (GridLayoutManager) mGridView.getLayoutManager();
                 layoutManager.setSpanCount( galleryColumns );
-                mGridView.getAdapter().notifyDataSetChanged();
             }
         });
         
@@ -461,8 +463,12 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         getMenuInflater().inflate( R.menu.gallery_activity, menu );
         
         mRefreshItem = menu.findItem( R.id.menuItem_refreshRoms );
-        mSearchItem = menu.findItem( R.id.menuItem_search );
-        MenuItemCompat.setOnActionExpandListener( mSearchItem, new OnActionExpandListener()
+        
+        SearchManager searchManager = (SearchManager) this.getSystemService( Context.SEARCH_SERVICE );
+        mSearchItem = (SupportMenuItem) menu.findItem( R.id.menuItem_search );
+        SearchView searchView = (SearchView) mSearchItem.getActionView();
+        searchView.setSearchableInfo( searchManager.getSearchableInfo( this.getComponentName() ) );
+        mSearchItem.setSupportOnActionExpandListener(new MenuItemCompat.OnActionExpandListener()
         {
             @Override
             public boolean onMenuItemActionCollapse( MenuItem item )

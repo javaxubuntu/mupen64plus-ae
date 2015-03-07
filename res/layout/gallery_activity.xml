@@ -22,7 +22,7 @@
 
                 <include layout="@layout/toolbar" />
 
-                <android.support.v7.widget.RecyclerView
+                <paulscode.android.mupen64plusae.GalleryView
                     android:id="@+id/gridview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -31,7 +31,8 @@
                     android:paddingTop="@dimen/galleryHalfSpacing"
                     android:paddingBottom="40dip"
                     android:clipToPadding="false"
-                    android:gravity="center" />
+                    android:gravity="center"
+                    android:scrollbars="vertical" />
             </LinearLayout>
             
             <ImageButton

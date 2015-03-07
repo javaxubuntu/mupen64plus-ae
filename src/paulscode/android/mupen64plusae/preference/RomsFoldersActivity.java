@@ -116,11 +116,7 @@ public class RomsFoldersActivity extends ListActivity
         final RomsFolder folder = (RomsFolder) getListView().getItemAtPosition( position );
         if( folder != null )
         {
-            int resId = R.array.romsFoldersClickCustom_entries;
-            if ( mUserPrefs.romsDirs.length <= 1 )
-                resId = R.array.romsFoldersClickCustomNoRemove_entries;
-            
-            CharSequence[] items = getResources().getTextArray( resId );
+            CharSequence[] items = getResources().getTextArray( R.array.romsFoldersClickCustom_entries );
             
             Builder builder = new Builder( this );
             builder.setTitle( getString( R.string.popup_titleCustom, folder.path ) );
@@ -177,7 +173,7 @@ public class RomsFoldersActivity extends ListActivity
                 if( which == DialogInterface.BUTTON_POSITIVE )
                 {
                     if ( oldFolder != null )
-                        mUserPrefs.removeRomsFolder( oldFolder, true );
+                        mUserPrefs.removeRomsFolder( oldFolder );
                     
                     mUserPrefs.addRomsFolder( new RomsFolder( file.getAbsolutePath(), searchZips ) );
                     refreshList();
@@ -203,7 +199,7 @@ public class RomsFoldersActivity extends ListActivity
             @Override
             public void onConfirm()
             {
-                mUserPrefs.removeRomsFolder( finalFolder, false );
+                mUserPrefs.removeRomsFolder( finalFolder );
                 refreshList();
             }
         } );
@@ -241,9 +237,8 @@ public class RomsFoldersActivity extends ListActivity
                 TextView text2 = (TextView) view.findViewById( R.id.text2 );
                 ImageView icon = (ImageView) view.findViewById( R.id.icon );
                 
-                int index = folder.path.lastIndexOf( "/" );
-                
-                text1.setText( folder.path.substring( index + 1 ) );
+                int index = folder.path.lastIndexOf( "/" ) + 1;
+                text1.setText( folder.path.substring( index ) );
                 text2.setText( folder.path.substring( 0, index ) );
                 icon.setImageResource( R.drawable.ic_folder );
             }

@@ -55,9 +55,6 @@
         <item>@string/listItem_edit</item>
         <item>@string/listItem_remove</item>
     </string-array>
-    <string-array name="romsFoldersClickCustomNoRemove_entries" translatable="false">
-        <item>@string/listItem_edit</item>
-    </string-array>
 
     <!-- Touchscreen Auto-Hold Methods -->
     <string-array name="touchscreenAutoHold_entries" translatable="false">
