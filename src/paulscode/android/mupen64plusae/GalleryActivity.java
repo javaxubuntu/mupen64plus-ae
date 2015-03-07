@@ -956,16 +956,13 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             if( !ConfigFile.SECTIONLESS_NAME.equals( md5 ) )
             {
                 String goodName = config.get( md5, "goodName" );
+                
+                // Strip the region and dump information
                 String baseName = null;
                 if ( showFullNames )
-                {
                     baseName = goodName;
-                }
                 else
-                {
-                    // Strip the region and dump information
                     baseName = goodName.split( " \\(" )[0].trim();
-                }
                 
                 boolean matchesSearch = true;
                 if ( searches != null && searches.length > 0 )
@@ -986,6 +983,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 {
                     String romPath = config.get( md5, "romPath" );
                     String artPath = config.get( md5, "artPath" );
+                    
                     String lastPlayedStr = config.get( md5, "lastPlayed" );
                     int lastPlayed = 0;
                     if ( lastPlayedStr != null )
@@ -998,6 +996,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 }
             }
         }
+        
         Collections.sort( items, new GalleryItem.NameComparator() );
         if ( recentItems != null )
             Collections.sort( recentItems, new GalleryItem.RecentlyPlayedComparator() );
@@ -1026,8 +1025,11 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             @Override
             public int getSpanSize( int position )
             {
+                // Headings will take up every span (column) in the grid
                 if ( finalItems.get( position ).isHeading )
                     return galleryColumns;
+                
+                // Games will fit in a single column
                 return 1;
             }
         });
