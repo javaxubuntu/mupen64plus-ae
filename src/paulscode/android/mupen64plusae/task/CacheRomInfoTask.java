@@ -43,6 +43,7 @@ import paulscode.android.mupen64plusae.dialog.ProgressDialog;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
+import paulscode.android.mupen64plusae.preference.RomsFolder;
 import paulscode.android.mupen64plusae.util.RomDatabase;
 import paulscode.android.mupen64plusae.util.RomDatabase.RomDetail;
 import paulscode.android.mupen64plusae.util.RomHeader;
@@ -60,7 +61,7 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         public void onCacheRomInfoFinished( ConfigFile file, boolean canceled );
     }
     
-    public CacheRomInfoTask( Activity activity, File searchPath, String databasePath, UserPrefs userPrefs,
+    public CacheRomInfoTask( Activity activity, RomsFolder folder, String databasePath, UserPrefs userPrefs,
             CacheRomInfoListener listener )
     {
         if( TextUtils.isEmpty( databasePath ) )
@@ -70,28 +71,21 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         if( listener == null )
             throw new IllegalArgumentException( "Listener cannot be null" );
         
-        if ( searchPath != null )
+        if ( folder != null )
         {
             mUpdating = false;
-            mSearchPaths = new File[]{ searchPath };
+            mFolders = new RomsFolder[]{ folder };
         }
         else
         {
             mUpdating = true;
-            mSearchPaths = new File[ userPrefs.romsDirs.length ];
-            int index = 0;
-            for ( String path : userPrefs.romsDirs )
-            {
-                mSearchPaths[ index ] = new File( path );
-                index++;
-            }
+            mFolders = userPrefs.romsDirs;
         }
         
         mDatabasePath = databasePath;
         mConfigPath = userPrefs.romInfoCache_cfg;
         mArtDir = userPrefs.coverArtDir;
         mUnzipDir = userPrefs.unzippedRomsDir;
-        mSearchZips = userPrefs.getSearchZips();
         mDownloadArt = userPrefs.getDownloadArt();
         mClearGallery = userPrefs.getClearGallery();
         mListener = listener;
@@ -109,12 +103,11 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         mProgress.show();
     }
     
-    private final File[] mSearchPaths;
+    private final RomsFolder[] mFolders;
     private final String mDatabasePath;
     private final String mConfigPath;
     private final String mArtDir;
     private final String mUnzipDir;
-    private final boolean mSearchZips;
     private final boolean mDownloadArt;
     private final boolean mClearGallery;
     private final boolean mUpdating;
@@ -133,9 +126,10 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         touchFile( mArtDir + "/.nomedia" );
         
         final List<File> files = new ArrayList<File>();
-        for ( File searchPath : mSearchPaths )
+        final List<File> zips = new ArrayList<File>();
+        for ( RomsFolder folder : mFolders )
         {
-            files.addAll( getAllFiles( searchPath ) );
+            getAllFiles( files, zips, new File( folder.path ), folder.searchZips );
         }
         
         final RomDatabase database = new RomDatabase( mDatabasePath );
@@ -162,59 +156,69 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
             mProgress.setSubtitle( path.substring( 0, fileIndex ) );
             mProgress.setText( path.substring( fileIndex ) );
             mProgress.setMessage( R.string.cacheRomInfo_searching );
-            
             if( isCancelled() ) break;
-            RomHeader header = new RomHeader( file );
-            if( header.isValid )
+            
+            cacheFile( file, database, config );
+            
+            mProgress.incrementProgress( 1 );
+        }
+        
+        for( final File file : zips )
+        {
+            mProgress.setMaxSubprogress( 0 );
+            mProgress.setSubtext( "" );
+            
+            String path = file.getAbsolutePath();
+            int fileIndex = path.lastIndexOf( "/" ) + 1;
+            mProgress.setSubtitle( path.substring( 0, fileIndex ) );
+            mProgress.setText( path.substring( fileIndex ) );
+            mProgress.setMessage( R.string.cacheRomInfo_searching );
+            if( isCancelled() ) break;
+            
+            Log.i( "CacheRomInfoTask", "Found zip file " + file.getName() );
+            try
             {
-                cacheFile( file, database, config );
-            }
-            else if( header.isZip && mSearchZips )
-            {
-                Log.i( "CacheRomInfoTask", "Found zip file " + file.getName() );
-                try
+                ZipFile zipFile = new ZipFile( file );
+                mProgress.setMaxSubprogress( zipFile.size() );
+                Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                while( entries.hasMoreElements() )
                 {
-                    ZipFile zipFile = new ZipFile( file );
-                    mProgress.setMaxSubprogress( zipFile.size() );
-                    Enumeration<? extends ZipEntry> entries = zipFile.entries();
-                    while( entries.hasMoreElements() )
+                    ZipEntry zipEntry = entries.nextElement();
+                    mProgress.setSubtext( zipEntry.getName() );
+                    mProgress.setMessage( R.string.cacheRomInfo_searchingZip );
+                    
+                    if( isCancelled() ) break;
+                    try
                     {
-                        ZipEntry zipEntry = entries.nextElement();
-                        mProgress.setSubtext( zipEntry.getName() );
-                        mProgress.setMessage( R.string.cacheRomInfo_searchingZip );
+                        InputStream zipStream = zipFile.getInputStream( zipEntry );
+                        File extractedFile = extractRomFile( new File( mUnzipDir ), zipEntry, zipStream );
                         
                         if( isCancelled() ) break;
-                        try
-                        {
-                            InputStream zipStream = zipFile.getInputStream( zipEntry );
-                            File extractedFile = extractRomFile( new File( mUnzipDir ), zipEntry, zipStream );
-                            
-                            if( isCancelled() ) break;
-                            if( extractedFile != null )
-                                cacheFile( extractedFile, database, config );
-                            zipStream.close();
-                        }
-                        catch( IOException e )
-                        {
-                            Log.w( "CacheRomInfoTask", e );
-                        }
-                        mProgress.incrementSubprogress( 1 );
+                        if( extractedFile != null )
+                            cacheFile( extractedFile, database, config );
+                        zipStream.close();
                     }
-                    zipFile.close();
+                    catch( IOException e )
+                    {
+                        Log.w( "CacheRomInfoTask", e );
+                    }
+                    mProgress.incrementSubprogress( 1 );
                 }
-                catch( ZipException e )
-                {
-                    Log.w( "CacheRomInfoTask", e );
-                }
-                catch( IOException e )
-                {
-                    Log.w( "CacheRomInfoTask", e );
-                }
-                catch( ArrayIndexOutOfBoundsException e )
-                {
-                    Log.w( "CacheRomInfoTask", e );
-                }
+                zipFile.close();
             }
+            catch( ZipException e )
+            {
+                Log.w( "CacheRomInfoTask", e );
+            }
+            catch( IOException e )
+            {
+                Log.w( "CacheRomInfoTask", e );
+            }
+            catch( ArrayIndexOutOfBoundsException e )
+            {
+                Log.w( "CacheRomInfoTask", e );
+            }
+            
             mProgress.incrementProgress( 1 );
         }
         
@@ -286,22 +290,24 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
         mProgress.dismiss();
     }
     
-    private List<File> getAllFiles( File searchPath )
+    private void getAllFiles( List<File> files, List<File> zips, File searchPath, boolean searchZips )
     {
-        List<File> result = new ArrayList<File>();
         if( searchPath.isDirectory() )
         {
             for( File file : searchPath.listFiles() )
             {
                 if( isCancelled() ) break;
-                result.addAll( getAllFiles( file ) );
+                getAllFiles( files, zips, file, searchZips );
             }
         }
         else
         {
-            result.add( searchPath );
+            RomHeader header = new RomHeader( searchPath );
+            if( header.isValid )
+                files.add( searchPath );
+            else if( searchZips && header.isZip )
+                zips.add( searchPath );
         }
-        return result;
     }
     
     private void cacheFile( File file, RomDatabase database, ConfigFile config )

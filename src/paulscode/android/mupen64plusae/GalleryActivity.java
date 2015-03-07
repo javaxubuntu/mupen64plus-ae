@@ -41,6 +41,7 @@ import paulscode.android.mupen64plusae.persistent.UserPrefs;
 import paulscode.android.mupen64plusae.profile.ManageControllerProfilesActivity;
 import paulscode.android.mupen64plusae.profile.ManageEmulationProfilesActivity;
 import paulscode.android.mupen64plusae.profile.ManageTouchscreenProfilesActivity;
+import paulscode.android.mupen64plusae.preference.RomsFolder;
 import paulscode.android.mupen64plusae.task.CacheRomInfoTask;
 import paulscode.android.mupen64plusae.task.CacheRomInfoTask.CacheRomInfoListener;
 import paulscode.android.mupen64plusae.task.ComputeMd5Task;
@@ -196,7 +197,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             @Override
             public void onClick( View view )
             {
-                promptSearchPath( null );
+                promptSearchPath( null, true );
             }
         });
         
@@ -875,35 +876,35 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         }
     }
     
-    private void promptSearchPath( File startDir )
+    private void promptSearchPath( File startDir, boolean searchZips )
     {
         // Prompt for search path, then asynchronously search for ROMs
         if( startDir == null || !startDir.exists() )
             startDir = new File( Environment.getExternalStorageDirectory().getAbsolutePath() );
         
-        ScanRomsDialog dialog = new ScanRomsDialog( this, startDir, false, new ScanRomsDialogListener()
+        ScanRomsDialog dialog = new ScanRomsDialog( this, startDir, false, searchZips, new ScanRomsDialogListener()
         {
             @Override
-            public void onDialogClosed( File file, int which )
+            public void onDialogClosed( File file, int which, boolean searchZips )
             {
                 if( which == DialogInterface.BUTTON_POSITIVE )
                 {
                     // Add this directory to the list of ROMs folders to search
-                    mUserPrefs.addRomsFolder( file.getAbsolutePath() );
+                    mUserPrefs.addRomsFolder( new RomsFolder( file.getAbsolutePath(), searchZips ) );
                     
                     // Search this folder for ROMs
-                    refreshRoms( file );
+                    refreshRoms( new RomsFolder( file.getAbsolutePath(), searchZips ) );
                 }
                 else if( file != null )
                 {
                     if( file.isDirectory() )
                     {
-                        promptSearchPath( file );
+                        promptSearchPath( file, searchZips );
                     }
                     else
                     {
                         // The user selected an individual file
-                        refreshRoms( file );
+                        refreshRoms( new RomsFolder( file.getAbsolutePath(), searchZips ) );
                     }
                 }
             }
@@ -912,7 +913,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         dialog.show();
     }
     
-    private void refreshRoms( final File startDir )
+    private void refreshRoms( final RomsFolder startDir )
     {
         // Asynchronously search for ROMs
         mCacheRomInfoTask = new CacheRomInfoTask( this, startDir,

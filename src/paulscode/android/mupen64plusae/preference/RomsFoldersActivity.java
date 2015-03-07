@@ -33,6 +33,7 @@ import paulscode.android.mupen64plusae.dialog.Prompt;
 import paulscode.android.mupen64plusae.dialog.Prompt.PromptConfirmListener;
 import paulscode.android.mupen64plusae.dialog.ScanRomsDialog;
 import paulscode.android.mupen64plusae.dialog.ScanRomsDialog.ScanRomsDialogListener;
+import paulscode.android.mupen64plusae.preference.RomsFolder;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
@@ -69,7 +70,7 @@ public class RomsFoldersActivity extends ListActivity
     /** The user preferences wrapper, available as a convenience to subclasses. */
     protected UserPrefs mUserPrefs;
     
-    private final List<String> mFolders = new ArrayList<String>();
+    private final List<RomsFolder> mFolders = new ArrayList<RomsFolder>();
     
     @Override
     protected void onCreate( Bundle savedInstanceState )
@@ -101,7 +102,7 @@ public class RomsFoldersActivity extends ListActivity
         switch( item.getItemId() )
         {
             case R.id.menuItem_new:
-                updateFolder( null, null );
+                addFolder();
                 return true;
             default:
                 return super.onOptionsItemSelected( item );
@@ -112,7 +113,7 @@ public class RomsFoldersActivity extends ListActivity
     protected void onListItemClick( ListView l, View v, int position, long id )
     {
         // Popup a dialog with a context-sensitive list of options for the folder
-        final String folder = (String) getListView().getItemAtPosition( position );
+        final RomsFolder folder = (RomsFolder) getListView().getItemAtPosition( position );
         if( folder != null )
         {
             int resId = R.array.romsFoldersClickCustom_entries;
@@ -122,7 +123,7 @@ public class RomsFoldersActivity extends ListActivity
             CharSequence[] items = getResources().getTextArray( resId );
             
             Builder builder = new Builder( this );
-            builder.setTitle( getString( R.string.popup_titleCustom, folder ) );
+            builder.setTitle( getString( R.string.popup_titleCustom, folder.path ) );
             builder.setItems( items, new DialogInterface.OnClickListener()
             {
                 @Override
@@ -131,7 +132,7 @@ public class RomsFoldersActivity extends ListActivity
                     switch( which )
                     {
                         case 0:
-                            updateFolder( folder, null );
+                            editFolder( folder );
                             break;
                         case 1:
                             removeFolder( folder );
@@ -144,31 +145,46 @@ public class RomsFoldersActivity extends ListActivity
         super.onListItemClick( l, v, position, id );
     }
     
-    private void updateFolder( String folder, File startDir )
+    private void addFolder()
     {
-        if ( startDir == null && folder != null )
-            startDir = new File( folder );
+        updateFolder( null, null );
+    }
+    
+    private void editFolder( RomsFolder folder )
+    {
+        updateFolder( folder, null );
+    }
+    
+    private void updateFolder( RomsFolder folder, File startDir )
+    {
+        if ( startDir == null && folder != null && folder.path != null )
+            startDir = new File( folder.path );
         
         // Prompt for search path for the ROMs folder
         if( startDir == null || !startDir.exists() )
             startDir = new File( Environment.getExternalStorageDirectory().getAbsolutePath() );
         
-        final String oldFolder = folder;
-        ScanRomsDialog dialog = new ScanRomsDialog( this, startDir, true, new ScanRomsDialogListener()
+        final RomsFolder oldFolder = new RomsFolder( folder );
+        boolean searchZips = true;
+        if ( folder != null )
+            searchZips = folder.searchZips;
+        
+        ScanRomsDialog dialog = new ScanRomsDialog( this, startDir, true, searchZips, new ScanRomsDialogListener()
         {
             @Override
-            public void onDialogClosed( File file, int which )
+            public void onDialogClosed( File file, int which, boolean searchZips )
             {
                 if( which == DialogInterface.BUTTON_POSITIVE )
                 {
                     if ( oldFolder != null )
                         mUserPrefs.removeRomsFolder( oldFolder, true );
                     
-                    mUserPrefs.addRomsFolder( file.getAbsolutePath() );
+                    mUserPrefs.addRomsFolder( new RomsFolder( file.getAbsolutePath(), searchZips ) );
                     refreshList();
                 }
                 else if( file != null )
                 {
+                    oldFolder.searchZips = searchZips;
                     updateFolder( oldFolder, file );
                 }
             }
@@ -177,11 +193,11 @@ public class RomsFoldersActivity extends ListActivity
         dialog.show();
     }
     
-    private void removeFolder( String folder )
+    private void removeFolder( RomsFolder folder )
     {
-        final String finalFolder = folder;
+        final RomsFolder finalFolder = folder;
         String title = getString( R.string.confirm_title );
-        String message = getString( R.string.confirmRemoveFolder_message, folder );
+        String message = getString( R.string.confirmRemoveFolder_message, folder.path );
         Prompt.promptConfirm( this, title, message, new PromptConfirmListener()
         {
             @Override
@@ -199,11 +215,11 @@ public class RomsFoldersActivity extends ListActivity
         setListAdapter( new RomsFoldersListAdapter( this, Arrays.asList( mUserPrefs.romsDirs ) ) );
     }
     
-    private class RomsFoldersListAdapter extends ArrayAdapter<String>
+    private class RomsFoldersListAdapter extends ArrayAdapter<RomsFolder>
     {
         private static final int RESID = R.layout.list_item_two_text_icon;
         
-        public RomsFoldersListAdapter( Context context, List<String> folders )
+        public RomsFoldersListAdapter( Context context, List<RomsFolder> folders )
         {
             super( context, RESID, folders );
         }
@@ -218,17 +234,17 @@ public class RomsFoldersActivity extends ListActivity
             if( view == null )
                 view = inflater.inflate( RESID, null );
             
-            String folder = getItem( position );
-            if( folder != null )
+            RomsFolder folder = getItem( position );
+            if( folder != null && folder.path != null )
             {
                 TextView text1 = (TextView) view.findViewById( R.id.text1 );
                 TextView text2 = (TextView) view.findViewById( R.id.text2 );
                 ImageView icon = (ImageView) view.findViewById( R.id.icon );
                 
-                int index = folder.lastIndexOf( "/" );
+                int index = folder.path.lastIndexOf( "/" );
                 
-                text1.setText( folder.substring( index + 1 ) );
-                text2.setText( folder.substring( 0, index ) );
+                text1.setText( folder.path.substring( index + 1 ) );
+                text2.setText( folder.path.substring( 0, index ) );
                 icon.setImageResource( R.drawable.ic_folder );
             }
             return view;

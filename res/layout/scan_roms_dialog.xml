@@ -22,12 +22,11 @@
         android:orientation="vertical"
         android:padding="16dp" >
 
-        <TextView
-            android:id="@+id/text1"
+        <CheckBox
+            android:id="@+id/checkBox1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/addToLibrary_summary"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:text="@string/cacheRomInfo_searchZips_title" />
 
     </LinearLayout>
 
