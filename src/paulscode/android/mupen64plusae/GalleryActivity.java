@@ -555,6 +555,8 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         final GalleryItem item = useItem;
         final Context context = (Context) this;
         
+        view.setFocusable( true );
+        view.setBackgroundResource( android.R.drawable.list_selector_background );
         view.setOnClickListener( new OnClickListener()
         {
             @Override

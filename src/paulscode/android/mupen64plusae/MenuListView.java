@@ -211,7 +211,9 @@ public class MenuListView extends ExpandableListView
                 icon.setImageDrawable( item.getIcon() );
                 
                 if ( item.isChecked() )
-                    view.setBackgroundColor( 0xFF444444 );
+                    view.setBackgroundColor( 0x44FFFFFF );
+                else
+                    view.setBackgroundColor( 0x0 );
             }
             return view;
         }
@@ -253,7 +255,9 @@ public class MenuListView extends ExpandableListView
                 icon.setImageDrawable( item.getIcon() );
                 
                 if ( item.isChecked() )
-                    view.setBackgroundColor( 0xFF444444 );
+                    view.setBackgroundColor( 0x44FFFFFF );
+                else
+                    view.setBackgroundColor( 0x0 );
             }
             return view;
         }
