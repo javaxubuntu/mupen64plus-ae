@@ -145,7 +145,7 @@ public class GalleryItem
             view.setOnLongClickListener( this );
             
             // Tapping the dotsView will trigger a contextual menu
-            ImageView dotsView = (ImageView) view.findViewById( R.id.dots );
+            RelativeLayout dotsView = (RelativeLayout) view.findViewById( R.id.dots );
             final View itemView = view;
             if ( dotsView != null )
             {
@@ -242,7 +242,7 @@ public class GalleryItem
             if( item != null )
             {
                 ImageView artView = (ImageView) view.findViewById( R.id.imageArt );
-                ImageView dotsView = (ImageView) view.findViewById( R.id.dots );
+                RelativeLayout dotsView = (RelativeLayout) view.findViewById( R.id.dots );
                 TextView tv1 = (TextView) view.findViewById( R.id.text1 );
                 tv1.setText( item.toString() );
                 
