@@ -32,6 +32,7 @@ import paulscode.android.mupen64plusae.dialog.Prompt.PromptConfirmListener;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
+import paulscode.android.mupen64plusae.toolbar.ListToolbarActivity;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -58,8 +59,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.support.v7.widget.Toolbar;
 
-abstract public class ManageProfilesActivity extends ListActivity
+abstract public class ManageProfilesActivity extends ListToolbarActivity
 {
     /**
      * Gets the absolute path of the {@link ConfigFile} that backs this profile. Subclasses should
@@ -147,25 +149,17 @@ abstract public class ManageProfilesActivity extends ListActivity
     }
     
     @Override
-    public boolean onCreateOptionsMenu( Menu menu )
+    public void onCreateToolbarMenu( Toolbar toolbar )
     {
-        getMenuInflater().inflate( R.menu.profile_activity, menu );
-        return super.onCreateOptionsMenu( menu );
-    }
-    
-    @Override
-    public boolean onPrepareOptionsMenu( Menu menu )
-    {
-        menu.findItem( R.id.menuItem_toggleBuiltins ).setTitle(
+        toolbar.inflateMenu( R.menu.profile_activity );
+        toolbar.getMenu().findItem( R.id.menuItem_toggleBuiltins ).setTitle(
                 getBuiltinVisibility()
                         ? R.string.menuItem_hideBuiltins
                         : R.string.menuItem_showBuiltins );
-        return super.onPrepareOptionsMenu( menu );
     }
     
-    @TargetApi( 11 )
     @Override
-    public boolean onOptionsItemSelected( MenuItem item )
+    public boolean onToolbarItemSelected( MenuItem item )
     {
         switch( item.getItemId() )
         {
@@ -174,8 +168,7 @@ abstract public class ManageProfilesActivity extends ListActivity
                 return true;
             case R.id.menuItem_toggleBuiltins:
                 setBuiltinVisibility( !getBuiltinVisibility() );
-                if( AppData.IS_HONEYCOMB )
-                    invalidateOptionsMenu();
+                invalidateToolbarMenu();
                 refreshList();
                 return true;
             default:

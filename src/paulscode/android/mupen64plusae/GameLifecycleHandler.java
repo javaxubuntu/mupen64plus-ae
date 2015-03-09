@@ -21,6 +21,7 @@
 package paulscode.android.mupen64plusae;
 
 import java.util.ArrayList;
+import java.io.File;
 
 import org.mupen64plusae.v3.alpha.R;
 
@@ -63,6 +64,10 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
+
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.view.GravityCompat;
+import android.graphics.drawable.BitmapDrawable;
 
 import com.bda.controller.Controller;
 
@@ -109,6 +114,8 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
     private Activity mActivity;
     private GameSurface mSurface;
     private GameOverlay mOverlay;
+    private DrawerLayout mDrawerLayout;
+    private GameSidebar mGameSidebar;
     
     // Input resources
     private final ArrayList<AbstractController> mControllers;
@@ -122,6 +129,8 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
     // Intent data
     private final String mRomPath;
     private final String mRomMd5;
+    private final String mRomName;
+    private final String mArtPath;
     private final String mCheatArgs;
     private final boolean mDoRestart;
     
@@ -147,6 +156,8 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
             throw new Error( "ROM path and MD5 must be passed via the extras bundle when starting GameActivity" );
         mRomPath = extras.getString( Keys.Extras.ROM_PATH );
         mRomMd5 = extras.getString( Keys.Extras.ROM_MD5 );
+        mArtPath = extras.getString( Keys.Extras.ART_PATH );
+        mRomName = extras.getString( Keys.Extras.ROM_NAME );
         mCheatArgs = extras.getString( Keys.Extras.CHEAT_ARGS );
         mDoRestart = extras.getBoolean( Keys.Extras.DO_RESTART, false );
         if( TextUtils.isEmpty( mRomPath ) || TextUtils.isEmpty( mRomMd5 ) )
@@ -200,6 +211,19 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         mActivity.setContentView( R.layout.game_activity );
         mSurface = (GameSurface) mActivity.findViewById( R.id.gameSurface );
         mOverlay = (GameOverlay) mActivity.findViewById( R.id.gameOverlay );
+        mGameSidebar = (GameSidebar) mActivity.findViewById( R.id.gameSidebar );
+        mDrawerLayout = (DrawerLayout) mActivity.findViewById( R.id.drawerLayout );
+        
+        if ( !TextUtils.isEmpty( mArtPath ) && new File( mArtPath ).exists() )
+            mGameSidebar.setImage( new BitmapDrawable( mActivity.getResources(), mArtPath ) );
+        
+        String romName = null;
+        if ( mRomName != null && !mUserPrefs.getShowFullNames() )
+            romName = mRomName.split( " \\(" )[0].trim();
+        else
+            romName = mRomName;
+        mGameSidebar.setTitle( mRomName );
+        updateSidebar();
         
         // Initialize the objects and data files interfacing to the emulator core
         CoreInterface.initialize( mActivity, mSurface, mRomPath, mRomMd5, mCheatArgs, mDoRestart );
@@ -242,6 +266,198 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         
         // Override the peripheral controllers' key provider, to add some extra functionality
         inputSource.setOnKeyListener( this );
+    }
+    
+    protected void updateSidebar()
+    {
+        mGameSidebar.clear();
+        
+        // Save & Exit
+        mGameSidebar.addRow( R.drawable.ic_undo,
+            mActivity.getString( R.string.menuItem_exit ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    mActivity.finish();
+                }
+            });
+        
+        // Speed
+        mGameSidebar.addRow( R.drawable.ic_clock,
+            mActivity.getString( R.string.menuItem_toggleSpeed, NativeExports.emuGetSpeed() ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        // Slot load
+        mGameSidebar.addRow( R.drawable.ic_folder,
+            mActivity.getString( R.string.menuItem_slotLoad ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        // Slot save
+        mGameSidebar.addRow( R.drawable.ic_save,
+            mActivity.getString( R.string.menuItem_slotSave ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        // Set slot
+        mGameSidebar.addRow( R.drawable.ic_storage,
+            mActivity.getString( R.string.menuItem_setSlot, NativeExports.emuGetSlot() ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        /*<menu>
+            <group android:checkableBehavior="single" >
+                <item
+                    android:id="@+id/menuItem_slot0"
+                    android:checked="true"
+                    android:title="0"/>
+                <item
+                    android:id="@+id/menuItem_slot1"
+                    android:title="1"/>
+                <item
+                    android:id="@+id/menuItem_slot2"
+                    android:title="2"/>
+                <item
+                    android:id="@+id/menuItem_slot3"
+                    android:title="3"/>
+                <item
+                    android:id="@+id/menuItem_slot4"
+                    android:title="4"/>
+                <item
+                    android:id="@+id/menuItem_slot5"
+                    android:title="5"/>
+                <item
+                    android:id="@+id/menuItem_slot6"
+                    android:title="6"/>
+                <item
+                    android:id="@+id/menuItem_slot7"
+                    android:title="7"/>
+                <item
+                    android:id="@+id/menuItem_slot8"
+                    android:title="8"/>
+                <item
+                    android:id="@+id/menuItem_slot9"
+                    android:title="9"/>
+            </group>
+        </menu>*/
+        
+        mGameSidebar.addRow( 0x0,
+            mActivity.getString( R.string.menuItem_fileLoad ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        mGameSidebar.addRow( 0x0,
+            mActivity.getString( R.string.menuItem_fileSave ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        mGameSidebar.addRow( 0x0,
+            mActivity.getString( R.string.menuItem_screenshot ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        mGameSidebar.addRow( 0x0,
+            mActivity.getString( R.string.menuItem_setSpeed ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        mGameSidebar.addRow( 0x0,
+            mActivity.getString( R.string.menuItem_disableFramelimiter ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        mGameSidebar.addRow( 0x0,
+            mActivity.getString( R.string.menuItem_paks ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        mGameSidebar.addRow( 0x0,
+            mActivity.getString( R.string.menuItem_setIme ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        mGameSidebar.addROMInfo( mRomName );
     }
     
     public void onStart()
@@ -323,7 +539,14 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 toggleActionBar();
             return true;
         }
-        
+        else if (keyCode == KeyEvent.KEYCODE_MENU )
+        {
+            if ( mDrawerLayout.isDrawerOpen( GravityCompat.START ) )
+                mDrawerLayout.closeDrawer( GravityCompat.START );
+            else
+                mDrawerLayout.openDrawer( GravityCompat.START );
+            return true;
+        }
         // Let the PeripheralControllers and Android handle everything else
         else
         {

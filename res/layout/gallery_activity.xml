@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -56,7 +57,6 @@
             android:layout_height="match_parent"
             android:fitsSystemWindows="true" >
 
-            <!-- navigation list -->
             <paulscode.android.mupen64plusae.MenuListView
                 android:id="@+id/drawerNavigation"
                 android:layout_width="match_parent"
@@ -65,73 +65,11 @@
                 android:clipToPadding="false"
                 android:paddingTop="20dip" />
 
-            <!-- game information -->
-            <ScrollView
-                android:id="@+id/drawerInfoScroll"
+            <paulscode.android.mupen64plusae.GameSidebar
+                android:id="@+id/gameSidebar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#000"
-                android:visibility="gone" >
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical" >
-
-                    <LinearLayout
-                        android:id="@+id/imageLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="180dip" >
-                        <ImageView
-                            android:id="@+id/imageArt"
-                            android:layout_width="match_parent"
-                            android:layout_height="180dip"
-                            android:src="@drawable/default_coverart" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/gameTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:text="@string/galleryItemAdapter_dummyText"
-                        android:textColor="#AAA"
-                        android:padding="5dip"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-                    <LinearLayout
-                        android:id="@+id/drawerOptionsLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" >
-
-                        <!-- the game options will be added here programmatically -->
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/drawerInfoTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:text="@string/categoryGameInfo_title"
-                        android:textColor="#AAA"
-                        android:padding="5dip"
-                        android:textAppearance="?android:attr/textAppearanceSmall" />
-
-                    <LinearLayout
-                        android:id="@+id/drawerInfoLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingBottom="10dip" >
-
-                        <!-- the game information will be added here programmatically -->
-
-                    </LinearLayout>
-
-                </LinearLayout>
-            </ScrollView>
+                android:visibility="gone" />
         </RelativeLayout>
 
     </android.support.v4.widget.DrawerLayout>

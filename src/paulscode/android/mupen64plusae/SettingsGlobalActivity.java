@@ -28,6 +28,7 @@ import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
 import paulscode.android.mupen64plusae.preference.PrefUtil;
 import paulscode.android.mupen64plusae.preference.RomsFoldersActivity;
+import paulscode.android.mupen64plusae.toolbar.PreferenceToolbarActivity;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -39,7 +40,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 
-public class SettingsGlobalActivity extends PreferenceActivity implements OnPreferenceClickListener,
+public class SettingsGlobalActivity extends PreferenceToolbarActivity implements OnPreferenceClickListener,
         OnSharedPreferenceChangeListener
 {
     // These constants must match the keys used in res/xml/preferences.xml

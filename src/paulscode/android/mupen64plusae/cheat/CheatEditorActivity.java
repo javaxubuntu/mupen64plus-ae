@@ -34,6 +34,7 @@ import paulscode.android.mupen64plusae.dialog.Prompt.PromptTextListener;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
 import paulscode.android.mupen64plusae.util.RomHeader;
+import paulscode.android.mupen64plusae.toolbar.ListToolbarActivity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.ListActivity;
@@ -56,7 +57,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class CheatEditorActivity extends ListActivity implements View.OnClickListener, OnItemLongClickListener
+public class CheatEditorActivity extends ListToolbarActivity implements View.OnClickListener, OnItemLongClickListener
 {
     private static class CheatListAdapter extends ArrayAdapter<Cheat>
     {
