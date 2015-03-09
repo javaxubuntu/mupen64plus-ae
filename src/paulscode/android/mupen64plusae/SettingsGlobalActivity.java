@@ -105,9 +105,6 @@ public class SettingsGlobalActivity extends PreferenceToolbarActivity implements
         if( !AppData.IS_KITKAT )
             PrefUtil.removePreference( this, SCREEN_DISPLAY, DISPLAY_IMMERSIVE_MODE );
         
-        if( !mUserPrefs.isActionBarAvailable )
-            PrefUtil.removePreference( this, SCREEN_DISPLAY, DISPLAY_ACTION_BAR_TRANSPARENCY );
-        
         if( !mAppData.hardwareInfo.isXperiaPlay )
             PrefUtil.removePreference( this, SCREEN_ROOT, SCREEN_TOUCHPAD );
         
