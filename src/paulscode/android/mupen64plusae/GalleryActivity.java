@@ -487,7 +487,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         }
     }
     
-    public void onGalleryItemClick( GalleryItem item, View parentView )
+    public void onGalleryItemLongClick( GalleryItem item, View parentView )
     {
         if( item == null )
             Log.e( "GalleryActivity", "No item selected" );
@@ -500,7 +500,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         }
     }
     
-    public void onGalleryItemLongClick( GalleryItem item, View parentView )
+    public void onGalleryItemClick( GalleryItem item, View parentView )
     {
         // Show the game info sidebar
         mDrawerList.setVisibility( View.GONE );
