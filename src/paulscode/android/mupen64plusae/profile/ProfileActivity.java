@@ -24,6 +24,7 @@ import paulscode.android.mupen64plusae.Keys;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
+import paulscode.android.mupen64plusae.toolbar.PreferenceToolbarActivity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -73,7 +74,7 @@ import android.text.TextUtils;
  * }
  * </pre>
  */
-public abstract class ProfileActivity extends PreferenceActivity implements
+public abstract class ProfileActivity extends PreferenceToolbarActivity implements
         OnSharedPreferenceChangeListener
 {
     /**

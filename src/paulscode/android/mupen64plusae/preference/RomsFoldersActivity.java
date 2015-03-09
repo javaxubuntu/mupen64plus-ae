@@ -37,6 +37,7 @@ import paulscode.android.mupen64plusae.preference.RomsFolder;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
+import paulscode.android.mupen64plusae.toolbar.ListToolbarActivity;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -64,8 +65,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.support.v7.widget.Toolbar;
 
-public class RomsFoldersActivity extends ListActivity
+public class RomsFoldersActivity extends ListToolbarActivity
 {
     /** The user preferences wrapper, available as a convenience to subclasses. */
     protected UserPrefs mUserPrefs;
@@ -88,16 +90,14 @@ public class RomsFoldersActivity extends ListActivity
     }
     
     @Override
-    public boolean onCreateOptionsMenu( Menu menu )
+    public void onCreateToolbarMenu( Toolbar toolbar )
     {
-        getMenuInflater().inflate( R.menu.profile_activity, menu );
-        menu.findItem( R.id.menuItem_toggleBuiltins ).setVisible( false );
-        return super.onCreateOptionsMenu( menu );
+        toolbar.inflateMenu( R.menu.profile_activity );
+        toolbar.getMenu().findItem( R.id.menuItem_toggleBuiltins ).setVisible( false );
     }
     
-    @TargetApi( 11 )
     @Override
-    public boolean onOptionsItemSelected( MenuItem item )
+    public boolean onToolbarItemSelected( MenuItem item )
     {
         switch( item.getItemId() )
         {

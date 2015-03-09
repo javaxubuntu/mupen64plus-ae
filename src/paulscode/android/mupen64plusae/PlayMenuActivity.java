@@ -48,6 +48,7 @@ import paulscode.android.mupen64plusae.util.RomDatabase;
 import paulscode.android.mupen64plusae.util.RomDatabase.RomDetail;
 import paulscode.android.mupen64plusae.util.RomHeader;
 import paulscode.android.mupen64plusae.util.Utility;
+import paulscode.android.mupen64plusae.toolbar.PreferenceToolbarActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -63,7 +64,7 @@ import android.util.Log;
 
 import com.bda.controller.Controller;
 
-public class PlayMenuActivity extends PreferenceActivity implements OnPreferenceClickListener,
+public class PlayMenuActivity extends PreferenceToolbarActivity implements OnPreferenceClickListener,
         OnSharedPreferenceChangeListener
 {
     // These constants must match the keys used in res/xml/preferences_play.xml
@@ -98,6 +99,8 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
     // ROM info
     private String mRomPath = null;
     private String mRomMd5 = null;
+    private String mArtPath = null;
+    private String mRomName = null;
     private RomHeader mRomHeader = null;
     private RomDatabase mRomDatabase = null;
     private RomDetail mRomDetail = null;
@@ -132,6 +135,8 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         mRomMd5 = extras.getString( Keys.Extras.ROM_MD5 );
         if( TextUtils.isEmpty( mRomPath ) || TextUtils.isEmpty( mRomMd5 ) )
             throw new Error( "ROM path and MD5 must be passed via the extras bundle" );
+        mRomName = extras.getString( Keys.Extras.ROM_NAME);
+        mArtPath = extras.getString( Keys.Extras.ART_PATH);
         
         // Initialize MOGA controller API
         // TODO: Remove hack after MOGA SDK is fixed
@@ -457,6 +462,8 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         intent.putExtra( Keys.Extras.ROM_MD5, mRomMd5 );
         intent.putExtra( Keys.Extras.CHEAT_ARGS, getCheatArgs() );
         intent.putExtra( Keys.Extras.DO_RESTART, isRestarting );
+        intent.putExtra( Keys.Extras.ART_PATH, mArtPath );
+        intent.putExtra( Keys.Extras.ROM_NAME, mRomName );
         
         startActivity( intent );
     }

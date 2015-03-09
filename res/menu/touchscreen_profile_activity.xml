@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools" >
 
     <item
+        android:id="@+id/menuItem_exit"
+        android:icon="@drawable/ic_undo"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/menuItem_exit"/>
+    <item
         android:id="@+id/menuItem_globalSettings"
         android:icon="@drawable/ic_settings"
         android:showAsAction="ifRoom|withText"
@@ -10,6 +15,7 @@
         tools:ignore="UnusedAttribute"/>
     <item
         android:id="@+id/menuItem_buttons"
+        android:icon="@drawable/ic_controller"
         android:showAsAction="ifRoom|withText"
         android:title="@string/touchscreenProfileActivity_buttons"
         tools:ignore="UnusedAttribute">
@@ -42,10 +48,5 @@
             </group>
         </menu>
     </item>
-    <item
-        android:id="@+id/menuItem_exit"
-        android:showAsAction="ifRoom|withText"
-        android:title="@string/menuItem_exit"
-        tools:ignore="UnusedAttribute"/>
 
 </menu>

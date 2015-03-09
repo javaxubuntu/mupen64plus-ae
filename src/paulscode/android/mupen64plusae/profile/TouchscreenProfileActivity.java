@@ -25,6 +25,7 @@ import org.mupen64plusae.v3.alpha.R;
 
 import paulscode.android.mupen64plusae.GameOverlay;
 import paulscode.android.mupen64plusae.Keys;
+import paulscode.android.mupen64plusae.MenuListView;
 import paulscode.android.mupen64plusae.SettingsGlobalActivity;
 import paulscode.android.mupen64plusae.dialog.SeekBarGroup;
 import paulscode.android.mupen64plusae.input.AbstractController;
@@ -36,8 +37,6 @@ import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.ActionBar;
-import android.app.ActionBar.OnMenuVisibilityListener;
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
@@ -60,11 +59,16 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager.LayoutParams;
+import android.view.KeyEvent;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.view.GravityCompat;
+import android.support.v7.widget.Toolbar;
 
 public class TouchscreenProfileActivity extends Activity implements OnTouchListener
 {
@@ -99,6 +103,9 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
     private VisibleTouchMap mTouchscreenMap;
     private GameOverlay mOverlay;
     private ImageView mSurface;
+    private DrawerLayout mDrawerLayout;
+    private MenuListView mDrawerList;
+    private Toolbar mToolbar;
     
     // Live drag and drop editing
     private int initialX;
@@ -110,14 +117,12 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
     private int dragY;
     private Rect dragFrame;
     
-    // Don't enter immersive mode until the ActionBar menus are closed
-    private boolean actionBarMenuOpen = false;
-    
     @SuppressLint( "ClickableViewAccessibility" )
     @TargetApi( 11 )
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {
+        super.setTheme( android.support.v7.appcompat.R.style.Theme_AppCompat_NoActionBar );
         super.onCreate( savedInstanceState );
         
         // Get the user preferences wrapper
@@ -157,42 +162,69 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         READABLE_NAMES.put( TouchMap.DPD_RD, getString( R.string.controller_dpad ) );
         READABLE_NAMES.put( TouchMap.DPD_RU, getString( R.string.controller_dpad ) );
         
-        // For Honeycomb, let the action bar overlay the rendered view (rather than squeezing it)
-        // For earlier APIs, remove the title bar to yield more space
-        Window window = getWindow();
-        if( mUserPrefs.isActionBarAvailable )
-            window.requestFeature( Window.FEATURE_ACTION_BAR_OVERLAY );
-        else
-            window.requestFeature( Window.FEATURE_NO_TITLE );
-        
         // Enable full-screen mode
-        window.setFlags( LayoutParams.FLAG_FULLSCREEN, LayoutParams.FLAG_FULLSCREEN );
+        getWindow().setFlags( LayoutParams.FLAG_FULLSCREEN, LayoutParams.FLAG_FULLSCREEN );
         
         // Lay out content and get the views
         setContentView( R.layout.touchscreen_profile_activity );
         mSurface = (ImageView) findViewById( R.id.gameSurface );
         mOverlay = (GameOverlay) findViewById( R.id.gameOverlay );
         
-        // Configure the action bar introduced in higher Android versions
-        if( mUserPrefs.isActionBarAvailable )
+        // Configure the navigation drawer
+        mDrawerLayout = (DrawerLayout) findViewById( R.id.drawerLayout );
+        mToolbar = (Toolbar) findViewById( R.id.toolbar );
+        mToolbar.setTitle( getString( R.string.menuItem_touchscreenProfiles ) );
+        
+        mDrawerList = (MenuListView) findViewById( R.id.drawerNavigation );
+        mDrawerList.setMenuResource( R.menu.touchscreen_profile_activity );
+        updateButtons();
+        
+        // Handle menu item selections
+        final Activity activity = this;
+        mDrawerList.setOnClickListener( new MenuListView.OnClickListener()
         {
-            getActionBar().hide();
-            ColorDrawable color = new ColorDrawable( Color.parseColor( "#303030" ) );
-            color.setAlpha( mUserPrefs.displayActionBarTransparency );
-            getActionBar().setBackgroundDrawable( color );
-            
-            // onOptionsMenuClosed is not called due to a bug in Android:
-            // http://stackoverflow.com/questions/3688077/android-onoptionsmenuclosed-not-being-called-for-submenu
-            // so add a menu visibility listener instead
-            getActionBar().addOnMenuVisibilityListener( new OnMenuVisibilityListener()
+            @Override
+            public void onClick( MenuItem menuItem )
             {
-                @Override
-                public void onMenuVisibilityChanged( boolean isVisible )
+                switch( menuItem.getItemId() )
                 {
-                    actionBarMenuOpen = isVisible;
+                    case R.id.menuItem_globalSettings:
+                        Intent intent = new Intent( activity, SettingsGlobalActivity.class );
+                        intent.putExtra( Keys.Extras.MENU_DISPLAY_MODE, 1 );
+                        startActivity( intent );
+                        break;
+                    case R.id.menuItem_exit:
+                        finish();
+                        break;
+                    case R.id.menuItem_analog:
+                        toggleAsset( ANALOG );
+                        break;
+                    case R.id.menuItem_dpad:
+                        toggleAsset( DPAD );
+                        break;
+                    case R.id.menuItem_groupAB:
+                        toggleAsset( GROUP_AB );
+                        break;
+                    case R.id.menuItem_groupC:
+                        toggleAsset( GROUP_C );
+                        break;
+                    case R.id.menuItem_buttonL:
+                        toggleAsset( BUTTON_L );
+                        break;
+                    case R.id.menuItem_buttonR:
+                        toggleAsset( BUTTON_R );
+                        break;
+                    case R.id.menuItem_buttonZ:
+                        toggleAsset( BUTTON_Z );
+                        break;
+                    case R.id.menuItem_buttonS:
+                        toggleAsset( BUTTON_S );
+                        break;
                 }
-            });
-        }
+            }
+        });
+        
+        // Configure the action bar introduced in higher Android versions
         
         // Initialize the touchmap and overlay
         mTouchscreenMap = new VisibleTouchMap( getResources() );
@@ -208,8 +240,6 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
                 mUserPrefs.isTouchscreenAnimated, true, mUserPrefs.touchscreenScale,
                 mUserPrefs.touchscreenTransparency );
         mOverlay.postInvalidate();
-        if( AppData.IS_HONEYCOMB )
-            invalidateOptionsMenu();
     }
     
     @Override
@@ -235,7 +265,7 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
     public void onWindowFocusChanged( boolean hasFocus )
     {
         super.onWindowFocusChanged( hasFocus );
-        if( hasFocus && !actionBarMenuOpen )
+        if( hasFocus )
             hideSystemBars();
     }
     
@@ -250,15 +280,29 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
     }
     
     @Override
-    public boolean onCreateOptionsMenu( Menu menu )
+    public boolean onKeyDown( int keyCode, KeyEvent event )
     {
-        getMenuInflater().inflate( R.menu.touchscreen_profile_activity, menu );
-        return super.onCreateOptionsMenu( menu );
+        if ( keyCode == KeyEvent.KEYCODE_MENU )
+        {
+            if ( mDrawerLayout.isDrawerOpen( GravityCompat.START ) )
+                mDrawerLayout.closeDrawer( GravityCompat.START );
+            else
+                mDrawerLayout.openDrawer( GravityCompat.START );
+            return true;
+        }
+        return super.onKeyDown( keyCode, event );
     }
     
-    @Override
-    public boolean onPrepareOptionsMenu( Menu menu )
+    private void setCheckState( Menu menu, int id, String assetName )
     {
+        MenuItem item = menu.findItem( id );
+        if( item != null )
+            item.setChecked( hasAsset( assetName ) );
+    }
+    
+    private void updateButtons()
+    {
+        Menu menu = mDrawerList.getMenu();
         setCheckState( menu, R.id.menuItem_analog, ANALOG );
         setCheckState( menu, R.id.menuItem_dpad, DPAD );
         setCheckState( menu, R.id.menuItem_groupAB, GROUP_AB );
@@ -267,14 +311,7 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         setCheckState( menu, R.id.menuItem_buttonR, BUTTON_R );
         setCheckState( menu, R.id.menuItem_buttonZ, BUTTON_Z );
         setCheckState( menu, R.id.menuItem_buttonS, BUTTON_S );
-        return super.onPrepareOptionsMenu( menu );
-    }
-    
-    private void setCheckState( Menu menu, int id, String assetName )
-    {
-        MenuItem item = menu.findItem( id );
-        if( item != null )
-            item.setChecked( hasAsset( assetName ) );
+        mDrawerList.reload();
     }
     
     private boolean hasAsset( String assetName )
@@ -285,54 +322,14 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         return ( x > DISABLED_ASSET_POS ) && ( y > DISABLED_ASSET_POS );
     }
     
-    @Override
-    public boolean onMenuItemSelected( int featureId, MenuItem item )
-    {
-        switch( item.getItemId() )
-        {
-            case R.id.menuItem_globalSettings:
-                Intent intent = new Intent( this, SettingsGlobalActivity.class );
-                intent.putExtra( Keys.Extras.MENU_DISPLAY_MODE, 1 );
-                startActivity( intent );
-                return true;
-            case R.id.menuItem_exit:
-                finish();
-                return true;
-            case R.id.menuItem_analog:
-                toggleAsset( ANALOG );
-                return true;
-            case R.id.menuItem_dpad:
-                toggleAsset( DPAD );
-                return true;
-            case R.id.menuItem_groupAB:
-                toggleAsset( GROUP_AB );
-                return true;
-            case R.id.menuItem_groupC:
-                toggleAsset( GROUP_C );
-                return true;
-            case R.id.menuItem_buttonL:
-                toggleAsset( BUTTON_L );
-                return true;
-            case R.id.menuItem_buttonR:
-                toggleAsset( BUTTON_R );
-                return true;
-            case R.id.menuItem_buttonZ:
-                toggleAsset( BUTTON_Z );
-                return true;
-            case R.id.menuItem_buttonS:
-                toggleAsset( BUTTON_S );
-                return true;
-            default:
-                return super.onMenuItemSelected( featureId, item );
-        }
-    }
-    
     private void toggleAsset( String assetName )
     {
         // Change the position of the asset to show/hide
         int newPosition = hasAsset( assetName ) ? DISABLED_ASSET_POS : INITIAL_ASSET_POS;
         mProfile.putInt( assetName + TAG_X, newPosition );
         mProfile.putInt( assetName + TAG_Y, newPosition );
+        
+        updateButtons();
         refresh();
     }
     
@@ -366,25 +363,13 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         return ArrayUtils.contains( holdables, String.valueOf( n64Index ) );
     }
     
-    @SuppressLint( "InlinedApi" )
-    @TargetApi( 11 )
     @Override
     public void onBackPressed()
     {
-        // Only applies to Honeycomb devices
-        if( !AppData.IS_HONEYCOMB )
-            return;
-        
-        // Toggle the action bar
-        ActionBar actionBar = getActionBar();
-        if( actionBar.isShowing() )
-        {
-            hideSystemBars();
-        }
+        if ( mDrawerLayout.isDrawerOpen( GravityCompat.START ) )
+            mDrawerLayout.closeDrawer( GravityCompat.START );
         else
-        {
-            actionBar.show();
-        }
+            super.onBackPressed();
     }
     
     @SuppressLint( "InlinedApi" )
@@ -395,7 +380,6 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         if( !AppData.IS_HONEYCOMB )
             return;
         
-        getActionBar().hide();
         View view = mSurface.getRootView();
         if( view != null )
         {
@@ -409,7 +393,6 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
                 view.setSystemUiVisibility( View.SYSTEM_UI_FLAG_LOW_PROFILE ); // == STATUS_BAR_HIDDEN for Honeycomb
         }
     }
-
     
     @SuppressLint( "ClickableViewAccessibility" )
     @Override
