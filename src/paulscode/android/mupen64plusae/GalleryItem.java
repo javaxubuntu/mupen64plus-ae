@@ -143,21 +143,6 @@ public class GalleryItem
             
             // Long-pressing the view will trigger a contextual menu
             view.setOnLongClickListener( this );
-            
-            // Tapping the dotsView will trigger a contextual menu
-            RelativeLayout dotsView = (RelativeLayout) view.findViewById( R.id.dots );
-            final View itemView = view;
-            if ( dotsView != null )
-            {
-                dotsView.setOnClickListener( new OnClickListener()
-                {
-                    @Override
-                    public void onClick( View view )
-                    {
-                        showContextualMenu( itemView );
-                    }
-                });
-            }
         }
         
         public void showContextualMenu( View view )
@@ -232,7 +217,6 @@ public class GalleryItem
             if( item != null )
             {
                 ImageView artView = (ImageView) view.findViewById( R.id.imageArt );
-                RelativeLayout dotsView = (RelativeLayout) view.findViewById( R.id.dots );
                 TextView tv1 = (TextView) view.findViewById( R.id.text1 );
                 tv1.setText( item.toString() );
                 
@@ -248,7 +232,6 @@ public class GalleryItem
                     linearLayout.setPadding( 0, 0, 0, 0 );
                     tv1.setPadding( 5, 10, 0, 0 );
                     tv1.setTextSize( TypedValue.COMPLEX_UNIT_DIP, 18.0f );
-                    dotsView.setVisibility( View.GONE );
                     artView.setVisibility( View.GONE );
                 }
                 else
@@ -260,7 +243,6 @@ public class GalleryItem
                     linearLayout.setPadding( activity.galleryHalfSpacing, activity.galleryHalfSpacing, activity.galleryHalfSpacing, activity.galleryHalfSpacing );
                     tv1.setPadding( 0, 0, 0, 0 );
                     tv1.setTextSize( TypedValue.COMPLEX_UNIT_DIP, 13.0f );
-                    dotsView.setVisibility( View.VISIBLE );
                     artView.setVisibility( View.VISIBLE );
                     
                     item.loadBitmap();
@@ -271,9 +253,6 @@ public class GalleryItem
                     
                     artView.getLayoutParams().width = activity.galleryWidth;
                     artView.getLayoutParams().height = (int) ( activity.galleryWidth / activity.galleryAspectRatio );
-                    
-                    RelativeLayout layout = (RelativeLayout) view.findViewById( R.id.info );
-                    layout.getLayoutParams().width = activity.galleryWidth;
                 }
             }
         }

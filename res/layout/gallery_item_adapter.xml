@@ -3,53 +3,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/galleryItem"
+    android:padding="@dimen/galleryHalfSpacing"
     android:orientation="vertical" >
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/galleryHalfSpacing"
-        android:paddingRight="@dimen/galleryHalfSpacing"
-        android:paddingTop="@dimen/galleryHalfSpacing" >
-
-        <ImageView
-            android:id="@+id/imageArt"
-            android:layout_width="@dimen/galleryImageWidth"
-            android:layout_height="@dimen/galleryImageHeight"
-            android:layout_gravity="center_horizontal"
-            android:src="@drawable/default_coverart" />
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/info"
-        android:paddingLeft="@dimen/galleryHalfSpacing"
-        android:paddingBottom="@dimen/galleryHalfSpacing"
+    <ImageView
+        android:id="@+id/imageArt"
         android:layout_width="@dimen/galleryImageWidth"
-        android:layout_height="50dip" >
-        
-        <TextView
-            android:id="@+id/text1"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_toLeftOf="@+id/dots"
-            android:text="@string/galleryItemAdapter_dummyText"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-        
-        <RelativeLayout
-            android:id="@+id/dots"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:paddingRight="@dimen/galleryHalfSpacing" >
+        android:layout_height="@dimen/galleryImageHeight"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/default_coverart" />
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:alpha="0.7"
-                android:src="@drawable/ic_dots" />
+    <TextView
+        android:id="@+id/text1"
+        android:layout_width="wrap_content"
+        android:layout_height="50dip"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/dots"
+        android:text="@string/galleryItemAdapter_dummyText"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
-        </RelativeLayout>
-    </RelativeLayout>
 </LinearLayout>
