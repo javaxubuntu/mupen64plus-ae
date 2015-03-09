@@ -68,6 +68,7 @@ import android.widget.FrameLayout;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.view.GravityCompat;
 import android.graphics.drawable.BitmapDrawable;
+import android.view.inputmethod.InputMethodManager;
 
 import com.bda.controller.Controller;
 
@@ -294,7 +295,8 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 @Override
                 public void onAction()
                 {
-                    
+                    CoreInterface.toggleSpeed();
+                    updateSidebar();
                 }
             });
         
@@ -307,7 +309,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 @Override
                 public void onAction()
                 {
-                    
+                    CoreInterface.loadSlot();
                 }
             });
         
@@ -320,7 +322,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 @Override
                 public void onAction()
                 {
-                    
+                    CoreInterface.saveSlot();
                 }
             });
         
@@ -337,42 +339,6 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 }
             });
         
-        /*<menu>
-            <group android:checkableBehavior="single" >
-                <item
-                    android:id="@+id/menuItem_slot0"
-                    android:checked="true"
-                    android:title="0"/>
-                <item
-                    android:id="@+id/menuItem_slot1"
-                    android:title="1"/>
-                <item
-                    android:id="@+id/menuItem_slot2"
-                    android:title="2"/>
-                <item
-                    android:id="@+id/menuItem_slot3"
-                    android:title="3"/>
-                <item
-                    android:id="@+id/menuItem_slot4"
-                    android:title="4"/>
-                <item
-                    android:id="@+id/menuItem_slot5"
-                    android:title="5"/>
-                <item
-                    android:id="@+id/menuItem_slot6"
-                    android:title="6"/>
-                <item
-                    android:id="@+id/menuItem_slot7"
-                    android:title="7"/>
-                <item
-                    android:id="@+id/menuItem_slot8"
-                    android:title="8"/>
-                <item
-                    android:id="@+id/menuItem_slot9"
-                    android:title="9"/>
-            </group>
-        </menu>*/
-        
         mGameSidebar.addRow( 0x0,
             mActivity.getString( R.string.menuItem_fileLoad ),
             null,
@@ -381,7 +347,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 @Override
                 public void onAction()
                 {
-                    
+                    CoreInterface.loadFileFromPrompt();
                 }
             });
         
@@ -393,7 +359,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 @Override
                 public void onAction()
                 {
-                    
+                    CoreInterface.saveFileFromPrompt();
                 }
             });
         
@@ -405,7 +371,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 @Override
                 public void onAction()
                 {
-                    
+                    CoreInterface.screenshot();
                 }
             });
         
@@ -417,19 +383,24 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 @Override
                 public void onAction()
                 {
-                    
+                    CoreInterface.setCustomSpeedFromPrompt();
                 }
             });
         
+        int resId = NativeExports.emuGetFramelimiter()
+            ? R.string.menuItem_disableFramelimiter
+            : R.string.menuItem_enableFramelimiter;
+        
         mGameSidebar.addRow( 0x0,
-            mActivity.getString( R.string.menuItem_disableFramelimiter ),
+            mActivity.getString( resId ),
             null,
             new GameSidebar.Action()
             {
                 @Override
                 public void onAction()
                 {
-                    
+                    CoreInterface.toggleFramelimiter();
+                    updateSidebar();
                 }
             });
         
@@ -453,7 +424,10 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 @Override
                 public void onAction()
                 {
-                    
+                    InputMethodManager imeManager = (InputMethodManager) mActivity
+                            .getSystemService( Context.INPUT_METHOD_SERVICE );
+                    if ( imeManager != null )
+                        imeManager.showInputMethodPicker();
                 }
             });
         
