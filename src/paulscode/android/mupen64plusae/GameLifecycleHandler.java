@@ -47,7 +47,6 @@ import paulscode.android.mupen64plusae.profile.ControllerProfile;
 import paulscode.android.mupen64plusae.util.RomHeader;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -180,19 +179,11 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         mGamePrefs = new GamePrefs( mActivity, mRomMd5, new RomHeader( mRomPath ) );
         mUserPrefs.enforceLocale( mActivity );
         
-        // For Honeycomb, let the action bar overlay the rendered view (rather than squeezing it)
-        // For earlier APIs, remove the title bar to yield more space
-        Window window = mActivity.getWindow();
-        if( mUserPrefs.isActionBarAvailable )
-            window.requestFeature( Window.FEATURE_ACTION_BAR_OVERLAY );
-        else
-            window.requestFeature( Window.FEATURE_NO_TITLE );
-        
         // Enable full-screen mode
-        window.setFlags( LayoutParams.FLAG_FULLSCREEN, LayoutParams.FLAG_FULLSCREEN );
+        mActivity.getWindow().setFlags( LayoutParams.FLAG_FULLSCREEN, LayoutParams.FLAG_FULLSCREEN );
         
         // Keep screen from going to sleep
-        window.setFlags( LayoutParams.FLAG_KEEP_SCREEN_ON, LayoutParams.FLAG_KEEP_SCREEN_ON );
+        mActivity.getWindow().setFlags( LayoutParams.FLAG_KEEP_SCREEN_ON, LayoutParams.FLAG_KEEP_SCREEN_ON );
         
         // Set the screen orientation
         mActivity.setRequestedOrientation( mUserPrefs.displayOrientation );
@@ -239,15 +230,6 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         params.height = mUserPrefs.videoSurfaceHeight;
         params.gravity = mUserPrefs.displayPosition | Gravity.CENTER_HORIZONTAL;
         mSurface.setLayoutParams( params );
-        
-        // Configure the action bar introduced in higher Android versions
-        if( mUserPrefs.isActionBarAvailable )
-        {
-            mActivity.getActionBar().hide();
-            ColorDrawable color = new ColorDrawable( Color.parseColor( "#303030" ) );
-            color.setAlpha( mUserPrefs.displayActionBarTransparency );
-            mActivity.getActionBar().setBackgroundDrawable( color );
-        }
         
         // Initialize the screen elements
         if( mGamePrefs.isTouchscreenEnabled || mUserPrefs.isFpsEnabled )
@@ -505,20 +487,20 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
     {
         boolean keyDown = event.getAction() == KeyEvent.ACTION_DOWN;
         
-        // For devices with an action bar, absorb all back key presses
-        // and toggle the action bar
-        if( keyCode == KeyEvent.KEYCODE_BACK && mUserPrefs.isActionBarAvailable )
-        {
-            if( keyDown )
-                toggleActionBar();
-            return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_MENU )
+        if ( keyDown && keyCode == KeyEvent.KEYCODE_MENU )
         {
             if ( mDrawerLayout.isDrawerOpen( GravityCompat.START ) )
                 mDrawerLayout.closeDrawer( GravityCompat.START );
             else
                 mDrawerLayout.openDrawer( GravityCompat.START );
+            return true;
+        }
+        else if ( keyDown && keyCode == KeyEvent.KEYCODE_BACK )
+        {
+            if ( mDrawerLayout.isDrawerOpen( GravityCompat.START ) )
+                mDrawerLayout.closeDrawer( GravityCompat.START );
+            else
+                mActivity.finish();
             return true;
         }
         // Let the PeripheralControllers and Android handle everything else
@@ -529,9 +511,8 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
             // Android to handle the event (menu button, vol keys).
             if( mKeyProvider != null )
                 return mKeyProvider.onKey( view, keyCode, event );
-            
-            return false;
         }
+        return false;
     }
     
     @SuppressLint( "InlinedApi" )
@@ -637,26 +618,6 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN );
             else
                 view.setSystemUiVisibility( View.SYSTEM_UI_FLAG_LOW_PROFILE ); // == STATUS_BAR_HIDDEN for Honeycomb
-        }
-    }
-    
-    @TargetApi( 11 )
-    private void toggleActionBar()
-    {
-        // Only applies to Honeycomb devices
-        if( !AppData.IS_HONEYCOMB )
-            return;
-        
-        // Toggle the action bar
-        ActionBar actionBar = mActivity.getActionBar();
-        if( actionBar.isShowing() )
-        {
-            actionBar.hide();
-            hideSystemBars();
-        }
-        else
-        {
-            actionBar.show();
         }
     }
     
