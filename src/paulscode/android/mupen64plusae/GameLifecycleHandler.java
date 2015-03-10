@@ -204,8 +204,8 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         mActivity.setContentView( R.layout.game_activity );
         mSurface = (GameSurface) mActivity.findViewById( R.id.gameSurface );
         mOverlay = (GameOverlay) mActivity.findViewById( R.id.gameOverlay );
-        mGameSidebar = (GameSidebar) mActivity.findViewById( R.id.gameSidebar );
         mDrawerLayout = (DrawerLayout) mActivity.findViewById( R.id.drawerLayout );
+        mGameSidebar = (GameSidebar) mActivity.findViewById( R.id.gameSidebar );
         
         // Don't darken the game screen when the drawer is open
         mDrawerLayout.setScrimColor( 0x0 );
@@ -446,7 +446,8 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         mIsResumed = true;
         tryRunning();
         
-        mGameSidebar.getBackground().setAlpha( mUserPrefs.displaySidebarTransparency );
+        // Set the sidebar opacity
+        mGameSidebar.setBackgroundDrawable( new DrawerDrawable( mUserPrefs.displaySidebarTransparency ) );
         
         mMogaController.onResume();
     }
