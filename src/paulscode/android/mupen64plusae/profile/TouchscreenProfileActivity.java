@@ -22,6 +22,7 @@ package paulscode.android.mupen64plusae.profile;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.mupen64plusae.v3.alpha.R;
+import java.lang.Runnable;
 
 import paulscode.android.mupen64plusae.GameOverlay;
 import paulscode.android.mupen64plusae.Keys;
@@ -35,6 +36,7 @@ import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
+import paulscode.android.mupen64plusae.DrawerDrawable;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -177,7 +179,10 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         
         mDrawerList = (MenuListView) findViewById( R.id.drawerNavigation );
         mDrawerList.setMenuResource( R.menu.touchscreen_profile_activity );
+        mDrawerList.setBackgroundDrawable( new DrawerDrawable() );
         updateButtons();
+        
+        mDrawerLayout.openDrawer( GravityCompat.START );
         
         // Handle menu item selections
         final Activity activity = this;
@@ -230,6 +235,24 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         mTouchscreenMap = new VisibleTouchMap( getResources() );
         mOverlay.setOnTouchListener( this );
         mOverlay.initialize( mTouchscreenMap, true, mUserPrefs.isFpsEnabled, mUserPrefs.isTouchscreenAnimated );
+        
+        // Don't darken the game screen when the drawer is open
+        mDrawerLayout.setScrimColor( 0x0 );
+        
+        // Make the background solid black
+        mSurface.getRootView().setBackgroundColor( 0xFF000000 );
+        
+        if ( savedInstanceState == null )
+        {
+            // Show the drawer at the start and have it hide itself automatically
+            mDrawerLayout.openDrawer( GravityCompat.START );
+            mDrawerLayout.postDelayed( new Runnable()
+            {
+                public void run() {
+                    mDrawerLayout.closeDrawer( GravityCompat.START );
+                }
+            }, 1000);
+        }
     }
     
     @TargetApi( 11 )
@@ -256,6 +279,8 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         params.height = mUserPrefs.videoSurfaceHeight;
         params.gravity = mUserPrefs.displayPosition | Gravity.CENTER_HORIZONTAL;
         mSurface.setLayoutParams( params );
+        
+        mDrawerList.getBackground().setAlpha( mUserPrefs.displaySidebarTransparency );
         
         // Refresh the touchscreen controls
         refresh();

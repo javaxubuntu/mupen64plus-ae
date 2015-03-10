@@ -22,6 +22,7 @@ package paulscode.android.mupen64plusae;
 
 import java.util.ArrayList;
 import java.io.File;
+import java.lang.Runnable;
 
 import org.mupen64plusae.v3.alpha.R;
 
@@ -206,6 +207,12 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         mGameSidebar = (GameSidebar) mActivity.findViewById( R.id.gameSidebar );
         mDrawerLayout = (DrawerLayout) mActivity.findViewById( R.id.drawerLayout );
         
+        // Don't darken the game screen when the drawer is open
+        mDrawerLayout.setScrimColor( 0x0 );
+        
+        // Make the background solid black
+        mSurface.getRootView().setBackgroundColor( 0xFF000000 );
+        
         if ( !TextUtils.isEmpty( mArtPath ) && new File( mArtPath ).exists() )
             mGameSidebar.setImage( new BitmapDrawable( mActivity.getResources(), mArtPath ) );
         
@@ -214,7 +221,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
             romName = mRomName.split( " \\(" )[0].trim();
         else
             romName = mRomName;
-        mGameSidebar.setTitle( mRomName );
+        mGameSidebar.setTitle( romName );
         updateSidebar();
         
         // Initialize the objects and data files interfacing to the emulator core
@@ -249,6 +256,18 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         
         // Override the peripheral controllers' key provider, to add some extra functionality
         inputSource.setOnKeyListener( this );
+        
+        if ( savedInstanceState == null )
+        {
+            // Show the drawer at the start and have it hide itself automatically
+            mDrawerLayout.openDrawer( GravityCompat.START );
+            mDrawerLayout.postDelayed( new Runnable()
+            {
+                public void run() {
+                    mDrawerLayout.closeDrawer( GravityCompat.START );
+                }
+            }, 1000);
+        }
     }
     
     protected void updateSidebar()
@@ -426,6 +445,8 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         Log.i( "GameLifecycleHandler", "onResume" );
         mIsResumed = true;
         tryRunning();
+        
+        mGameSidebar.getBackground().setAlpha( mUserPrefs.displaySidebarTransparency );
         
         mMogaController.onResume();
     }

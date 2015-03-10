@@ -57,7 +57,6 @@ public class SettingsGlobalActivity extends PreferenceToolbarActivity implements
     private static final String DISPLAY_ORIENTATION = "displayOrientation";
     private static final String DISPLAY_RESOLUTION = "displayResolution";
     private static final String DISPLAY_IMMERSIVE_MODE = "displayImmersiveMode";
-    private static final String DISPLAY_ACTION_BAR_TRANSPARENCY = "displayActionBarTransparency";
     private static final String DISPLAY_FPS_REFRESH = "displayFpsRefresh";
     private static final String VIDEO_POLYGON_OFFSET = "videoPolygonOffset";
     private static final String VIDEO_HARDWARE_TYPE = "videoHardwareType";

@@ -21,6 +21,7 @@
 package paulscode.android.mupen64plusae;
 
 import org.mupen64plusae.v3.alpha.R;
+import paulscode.android.mupen64plusae.DrawerDrawable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,7 @@ public class GameSidebar extends ScrollView
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         inflater.inflate( R.layout.game_sidebar, this );
         
-        setBackgroundColor( 0xFF000000 );
+        setBackgroundDrawable( new DrawerDrawable() );
         
         mContext = context;
         mLayout = (LinearLayout) findViewById( R.id.layout );
