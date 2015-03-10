@@ -31,9 +31,12 @@ public class DrawerDrawable extends Drawable
     private Paint mPaint;
     int mAlpha = 100;
     
-    public DrawerDrawable()
+    public DrawerDrawable( int alpha )
     {
         mPaint = new Paint();
+        if ( alpha < 0 ) alpha = 0;
+        if ( alpha > 255 ) alpha = 255;
+        mAlpha = alpha;
     }
     
     @Override
@@ -41,7 +44,7 @@ public class DrawerDrawable extends Drawable
     {
         int width = getBounds().width();
         int height = getBounds().height();
-        int alpha = ( (mAlpha * 255) / 100 ) << 24;
+        int alpha = mAlpha << 24;
         
         mPaint.setColor( alpha + 0x000000 );
         canvas.drawRect( 0, 0, width, height, mPaint );
@@ -53,15 +56,13 @@ public class DrawerDrawable extends Drawable
     @Override
     public int getOpacity()
     {
-        return ( mAlpha == 100 ) ? PixelFormat.OPAQUE : PixelFormat.TRANSLUCENT;
+        return ( mAlpha == 255 ) ? PixelFormat.OPAQUE : PixelFormat.TRANSLUCENT;
     }
     
     @Override
     public void setAlpha( int alpha )
     {
-        if ( alpha < 0 ) alpha = 0;
-        if ( alpha > 100 ) alpha = 100;
-        mAlpha = alpha;
+        mPaint.setAlpha( alpha );
     }
     
     @Override

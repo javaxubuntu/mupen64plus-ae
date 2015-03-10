@@ -246,7 +246,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         final Activity activity = this;
         mDrawerList = (MenuListView) findViewById( R.id.drawerNavigation );
         mDrawerList.setMenuResource( R.menu.gallery_drawer );
-        mDrawerList.setBackgroundDrawable( new DrawerDrawable() );
         
         // Select the Library section
         mDrawerList.getMenu().getItem( 0 ).setChecked( true );
@@ -851,8 +850,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     protected void onResume()
     {
         super.onResume();
-        mDrawerList.getBackground().setAlpha( mUserPrefs.displaySidebarTransparency );
-        mGameSidebar.getBackground().setAlpha( mUserPrefs.displaySidebarTransparency );
         refreshViews();
     }
     
@@ -861,6 +858,10 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     {
         // Refresh the preferences object in case another activity changed the data
         mUserPrefs = new UserPrefs( this );
+        
+        // Set the sidebar opacity on the two sidebars
+        mDrawerList.setBackgroundDrawable( new DrawerDrawable( mUserPrefs.displaySidebarTransparency ) );
+        mGameSidebar.setBackgroundDrawable( new DrawerDrawable( mUserPrefs.displaySidebarTransparency ) );
         
         // Refresh the gallery
         refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );

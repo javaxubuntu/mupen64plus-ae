@@ -56,8 +56,6 @@ public class GameSidebar extends ScrollView
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         inflater.inflate( R.layout.game_sidebar, this );
         
-        setBackgroundDrawable( new DrawerDrawable() );
-        
         mContext = context;
         mLayout = (LinearLayout) findViewById( R.id.layout );
         mInfoArt = (ImageView) findViewById( R.id.imageArt );

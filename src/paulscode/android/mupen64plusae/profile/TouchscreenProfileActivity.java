@@ -179,7 +179,6 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         
         mDrawerList = (MenuListView) findViewById( R.id.drawerNavigation );
         mDrawerList.setMenuResource( R.menu.touchscreen_profile_activity );
-        mDrawerList.setBackgroundDrawable( new DrawerDrawable() );
         updateButtons();
         
         // Expand the Buttons group
@@ -281,7 +280,7 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         params.gravity = mUserPrefs.displayPosition | Gravity.CENTER_HORIZONTAL;
         mSurface.setLayoutParams( params );
         
-        mDrawerList.getBackground().setAlpha( mUserPrefs.displaySidebarTransparency );
+        mDrawerList.setBackgroundDrawable( new DrawerDrawable( mUserPrefs.displaySidebarTransparency ) );
         
         // Refresh the touchscreen controls
         refresh();
