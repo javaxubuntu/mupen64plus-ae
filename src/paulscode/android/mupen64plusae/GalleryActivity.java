@@ -103,6 +103,10 @@ import android.util.DisplayMetrics;
 
 public class GalleryActivity extends ActionBarActivity implements ComputeMd5Listener, CacheRomInfoListener
 {
+    // Saved instance states
+    public static final String STATE_QUERY = "query";
+    public static final String STATE_SIDEBAR = "sidebar";
+    
     // App data and user preferences
     private AppData mAppData = null;
     private UserPrefs mUserPrefs = null;
@@ -116,7 +120,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     private SupportMenuItem mSearchItem;
     private MenuItem mRefreshItem;
     private GameSidebar mGameSidebar;
-    private boolean mDragging;
     
     // Searching
     private SearchView mSearchView;
@@ -131,6 +134,11 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     
     // Background tasks
     private CacheRomInfoTask mCacheRomInfoTask = null;
+    
+    // Misc.
+    private List<GalleryItem> mGalleryItems = null;
+    private String mSelectedMD5 = null;
+    private boolean mDragging = false;
     
     @Override
     protected void onNewIntent( Intent intent )
@@ -241,6 +249,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                         mDragging = false;
                         mDrawerList.setVisibility( View.VISIBLE );
                         mGameSidebar.setVisibility( View.GONE );
+                        mSelectedMD5 = null;
                     }
                 }
             }
@@ -251,6 +260,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 // Hide the game information sidebar
                 mDrawerList.setVisibility( View.VISIBLE );
                 mGameSidebar.setVisibility( View.GONE );
+                mSelectedMD5 = null;
                 
                 showActionButton();
                 super.onDrawerClosed( drawerView );
@@ -363,6 +373,36 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             CharSequence message = getText( R.string.invalidInstall_message );
             new Builder( this ).setTitle( title ).setMessage( message ).create().show();
         }
+        
+        if ( savedInstanceState != null )
+        {
+            mSelectedMD5 = savedInstanceState.getString( STATE_SIDEBAR );
+            if ( mSelectedMD5 != null )
+            {
+                // Repopulate the game sidebar
+                for ( GalleryItem item : mGalleryItems )
+                {
+                    if ( mSelectedMD5.equals( item.md5 ) )
+                    {
+                        onGalleryItemClick( item, null );
+                        break;
+                    }
+                }
+            }
+            
+            String query = savedInstanceState.getString( STATE_QUERY );
+            if ( query != null )
+                mSearchQuery = query;
+        }
+    }
+    
+    @Override
+    public void onSaveInstanceState( Bundle savedInstanceState )
+    {
+        savedInstanceState.putString( STATE_QUERY, mSearchView.getQuery().toString() );
+        savedInstanceState.putString( STATE_SIDEBAR, mSelectedMD5 );
+        
+        super.onSaveInstanceState(savedInstanceState);
     }
     
     public void hideActionButton()
@@ -472,7 +512,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             @Override
             public boolean onMenuItemActionExpand( MenuItem item )
             {
-                
                 return true;
             }
         });
@@ -493,6 +532,13 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 return false;
             }
         });
+        
+        if ( ! "".equals( mSearchQuery ) )
+        {
+            String query = mSearchQuery;
+            MenuItemCompat.expandActionView( mSearchItem );
+            mSearchView.setQuery( query, true );
+        }
         
         return super.onCreateOptionsMenu( menu );
     }
@@ -525,6 +571,8 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     
     public void onGalleryItemClick( GalleryItem item, View parentView )
     {
+        mSelectedMD5 = item.md5;
+        
         // Show the game info sidebar
         mDrawerList.setVisibility( View.GONE );
         mGameSidebar.setVisibility( View.VISIBLE );
@@ -792,6 +840,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             items = combinedItems;
         }
         
+        mGalleryItems = items;
         mGridView.setAdapter( new GalleryItem.Adapter( this, items ) );
         
         // Allow the headings to take up the entire width of the layout
