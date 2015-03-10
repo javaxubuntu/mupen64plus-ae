@@ -348,7 +348,7 @@ public class UserPrefs
         // Video prefs
         displayOrientation = getSafeInt( mPreferences, "displayOrientation", 0 );
         displayPosition = getSafeInt( mPreferences, "displayPosition", Gravity.CENTER_VERTICAL );
-        int transparencyPercent = mPreferences.getInt( "displaySidebarTransparency", 100 );
+        int transparencyPercent = mPreferences.getInt( "displaySidebarTransparency", 80 );
         displaySidebarTransparency = ( 255 * transparencyPercent ) / 100;
         isFpsEnabled = mPreferences.getBoolean( "displayFps", false );
         int selectedHardwareType = getSafeInt( mPreferences, "videoHardwareType", -1 );
