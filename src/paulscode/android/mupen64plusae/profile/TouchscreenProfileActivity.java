@@ -181,7 +181,8 @@ public class TouchscreenProfileActivity extends Activity implements OnTouchListe
         mDrawerList.setBackgroundDrawable( new DrawerDrawable() );
         updateButtons();
         
-        mDrawerLayout.openDrawer( GravityCompat.START );
+        // Expand the Buttons group
+        mDrawerList.expandGroup( 2 );
         
         // Handle menu item selections
         final Activity activity = this;
