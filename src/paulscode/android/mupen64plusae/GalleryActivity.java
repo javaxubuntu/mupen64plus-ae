@@ -116,6 +116,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     private SupportMenuItem mSearchItem;
     private MenuItem mRefreshItem;
     private GameSidebar mGameSidebar;
+    private boolean mDragging;
     
     // Searching
     private SearchView mSearchView;
@@ -222,6 +223,28 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         mDrawerLayout = (DrawerLayout) findViewById( R.id.drawerLayout );
         mDrawerToggle = new ActionBarDrawerToggle( this, mDrawerLayout, toolbar, 0, 0 )
         {
+            @Override
+            public void onDrawerStateChanged( int newState )
+            {
+                // Intercepting the drawer open animation and re-closing it causes onDrawerClosed to not fire,
+                // So detect when this happens and wait until the drawer closes to handle it manually
+                if ( newState == DrawerLayout.STATE_DRAGGING )
+                {
+                    // INTERCEPTED!
+                    mDragging = true;
+                }
+                else if ( newState == DrawerLayout.STATE_IDLE )
+                {
+                    if ( mDragging && !mDrawerLayout.isDrawerOpen( GravityCompat.START ) )
+                    {
+                        // onDrawerClosed from dragging it
+                        mDragging = false;
+                        mDrawerList.setVisibility( View.VISIBLE );
+                        mGameSidebar.setVisibility( View.GONE );
+                    }
+                }
+            }
+            
             @Override
             public void onDrawerClosed( View drawerView )
             {
