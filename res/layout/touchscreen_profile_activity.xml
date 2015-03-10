@@ -45,8 +45,7 @@
             <paulscode.android.mupen64plusae.MenuListView
                 android:id="@+id/drawerNavigation"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#000" />
+                android:layout_height="match_parent" />
         </LinearLayout>
 
     </RelativeLayout>

@@ -10,7 +10,7 @@
 
         <LinearLayout
             android:id="@+id/imageLayout"
-            android:layout_width="match_parent"
+            android:layout_width="259dip"
             android:layout_height="180dip" >
             <ImageView
                 android:id="@+id/imageArt"
@@ -25,7 +25,6 @@
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:text="@string/galleryItemAdapter_dummyText"
-            android:textColor="#AAA"
             android:padding="5dip"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 

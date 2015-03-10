@@ -119,6 +119,15 @@
             android:summary="@string/displayImmersiveMode_summary"
             android:title="@string/displayImmersiveMode_title" />
 
+        <paulscode.android.mupen64plusae.preference.SeekBarPreference		
+            android:defaultValue="100"
+            android:key="displaySidebarTransparency"
+            android:title="@string/displaySidebarTransparency_title"
+            mupen64:maximumValue="100"
+            mupen64:minimumValue="20"
+            mupen64:stepSize="10"
+            mupen64:units="%" />
+
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="displayFps"
