@@ -100,6 +100,7 @@ import android.widget.TextView;
 import android.widget.ScrollView;
 import android.widget.LinearLayout;
 import android.util.DisplayMetrics;
+import android.view.inputmethod.InputMethodManager;
 
 public class GalleryActivity extends ActionBarActivity implements ComputeMd5Listener, CacheRomInfoListener
 {
@@ -240,6 +241,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 {
                     // INTERCEPTED!
                     mDragging = true;
+                    hideSoftKeyboard();
                 }
                 else if ( newState == DrawerLayout.STATE_IDLE )
                 {
@@ -269,6 +271,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             @Override
             public void onDrawerOpened( View drawerView )
             {
+                hideSoftKeyboard();
                 hideActionButton();
                 super.onDrawerOpened( drawerView );
             }
@@ -403,6 +406,16 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         savedInstanceState.putString( STATE_SIDEBAR, mSelectedMD5 );
         
         super.onSaveInstanceState(savedInstanceState);
+    }
+    
+    public void hideSoftKeyboard()
+    {
+        // Hide the soft keyboard if needed
+        if ( mSearchView == null )
+            return;
+        
+        InputMethodManager imm = (InputMethodManager) getSystemService( Context.INPUT_METHOD_SERVICE );
+        imm.hideSoftInputFromWindow( mSearchView.getWindowToken(), 0 );
     }
     
     public void hideActionButton()
