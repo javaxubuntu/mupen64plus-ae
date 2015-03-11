@@ -48,6 +48,10 @@
     <string name="menuItem_pak4_empty">Player 4: Empty</string>
     <string name="menuItem_pak4_mem">Player 4: Memory Pak</string> <!-- capitalize since trademark -->
     <string name="menuItem_pak4_rumble">Player 4: Rumble Pak</string> <!-- capitalize since trademark -->
+    <string name="menuItem_player">Player %1$d</string>
+    <string name="menuItem_pak_empty">Empty</string>
+    <string name="menuItem_pak_mem">Memory Pak</string>
+    <string name="menuItem_pak_rumble">Rumble Pak</string>
     <string name="menuItem_setIme">Change IME</string>
     <string name="menuItem_exit">Save &amp; Exit</string>
 
