@@ -40,6 +40,7 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.app.Activity;
 import android.preference.Preference;
+import android.util.DisplayMetrics;
 
 public class GameSidebar extends ScrollView
 {
@@ -109,8 +110,21 @@ public class GameSidebar extends ScrollView
     
     public void addRow( int icon, String title, String summary, Action action )
     {
+        addRow( icon, title, summary, action, 0x0, 0 );
+    }
+    
+    public void addRow( int icon, String title, String summary, Action action, int indicator, int indentation )
+    {
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-        View view = inflater.inflate( R.layout.list_item_two_text_icon, null );
+        View view = inflater.inflate( R.layout.list_item_menu, null );
+        
+        if ( indentation != 0 )
+        {
+            DisplayMetrics metrics = new DisplayMetrics();
+            ((Activity) getContext()).getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            
+            view.setPadding( (int) ( indentation * 15 * metrics.density ), view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom() );
+        }
         
         ImageView iconView = (ImageView) view.findViewById( R.id.icon );
         TextView text1 = (TextView) view.findViewById( R.id.text1 );
@@ -120,6 +134,11 @@ public class GameSidebar extends ScrollView
         text2.setText( summary );
         if ( summary == null )
             text2.setVisibility( View.GONE );
+        
+        ImageView indicatorView = (ImageView) view.findViewById( R.id.indicator );
+        indicatorView.setImageResource( indicator );
+        if ( indicator == 0x0 )
+            indicatorView.setVisibility( View.GONE );
         
         mLayout.addView( view );
         
