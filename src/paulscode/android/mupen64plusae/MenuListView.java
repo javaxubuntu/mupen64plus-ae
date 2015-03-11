@@ -47,6 +47,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 
 /* ExpandableListView which stores its data set as a Menu hierarchy */
 
@@ -214,6 +215,12 @@ public class MenuListView extends ExpandableListView
                 icon.setImageDrawable( item.getIcon() );
                 
                 view.setBackgroundColor( 0x0 );
+                
+                // Indent child views by 15 points
+                DisplayMetrics metrics = new DisplayMetrics();
+                ((Activity) mListView.getContext()).getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                
+                view.setPadding( (int) ( 15 * metrics.density ), view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom() );
                 
                 if ( !item.isCheckable() )
                     indicator.setImageResource( 0x0 );
