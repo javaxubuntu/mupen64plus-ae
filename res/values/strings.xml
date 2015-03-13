@@ -32,7 +32,7 @@
     <string name="menuItem_fileSave">Save to file…</string>
     <string name="menuItem_fileLoad">Load from file…</string>
     <string name="menuItem_screenshot">Screenshot</string>
-    <string name="menuItem_setSpeed">Game speed</string>
+    <string name="menuItem_setSpeed">Game speed...</string>
     <string name="menuItem_enableFramelimiter">Sync audio</string>
     <string name="menuItem_disableFramelimiter">Desync audio</string>
     <string name="menuItem_paks">Controller Paks</string> <!-- capitalize since trademark -->
@@ -76,6 +76,7 @@
     <string name="menuItem_helpForum">Help forum</string>
     <string name="menuItem_controllerDiagnostics">Controller diagnostics</string>
     <string name="menuItem_reportBug">Report bug</string>
+    <string name="menuItem_reportBug_subtitle">Report emulation issues with %1$s</string>
     <string name="menuItem_about">About</string>
     <string name="menuItem_credits">Credits</string>
     <string name="menuItem_appVersion">App version</string>
@@ -178,15 +179,14 @@
     <string name="actionShare_title">Share</string>
 
     <!-- ROM country code and dump information -->
-    <string name="categoryGameInfo_title">ROM Information</string>
-    <string name="infoVersion_title">Version %1$s</string>
-    <string name="infoVersion_summary">Game was released with multiple versions</string>
+    <string name="categoryGameInfo_title">Information</string>
+    <string name="infoVersion_title">Version</string>
     <string name="infoVerified_title">Verified good dump</string>
     <string name="infoVerified_summary">Game has been verified as a good dump</string>
     <string name="infoBad_title">Bad dump</string>
     <string name="infoBad_summary">Game has been dumped improperly</string>
-    <string name="infoLanguage_title">%1$s languages</string>
-    <string name="infoLanguage_summary">Game has language selection</string>
+    <string name="infoMultilanguage_title">Multi-language</string>
+    <string name="infoMultilanguage_summary">%1$s languages</string>
     <string name="infoOverdump_title">Overdump</string>
     <string name="infoOverdump_summary">Game includes additional unused information</string>
     <string name="infoHack_title">Hacked</string>
@@ -201,32 +201,20 @@
     <string name="infoTrained_summary">Game may include extra code to choose options at the start</string>
     <string name="infoBeta_title">Beta</string>
     <string name="infoBeta_summary">This is a prerelease version of the game</string>
-    <string name="infoPAL_title">PAL release</string>
-    <string name="infoPAL_summary">Game is compatible with PAL consoles</string>
-    <string name="infoNTSC_title">NTSC release</string>
-    <string name="infoNTSC_summary">Game is compatible with NTSC consoles</string>
-    <string name="infoPALNTSC_title">PAL and NTSC release</string>
-    <string name="infoPALNTSC_summary">Game is compatible with both PAL and NTSC consoles</string>
+    <string name="infoCompatibility_title">Compatibility</string>
+    <string name="infoPAL_title">PAL</string>
+    <string name="infoNTSC_title">NTSC</string>
+    <string name="infoPALNTSC_title">PAL and NTSC</string>
+    <string name="infoRegion_title">Region</string>
     <string name="infoAustralia_title">Australia</string>
-    <string name="infoAustralia_summary">Game was released in Australia</string>
     <string name="infoUSA_title">USA</string>
-    <string name="infoUSA_summary">Game was released in the USA</string>
     <string name="infoJapan_title">Japan</string>
-    <string name="infoJapan_summary">Game was released in Japan</string>
     <string name="infoJapanUSA_title">Japan and USA</string>
-    <string name="infoJapanUSA_summary">Game was released in Japan and the USA</string>
     <string name="infoEurope_title">Europe</string>
-    <string name="infoEurope_summary">Game was released in Europe</string>
-    <string name="infoGermany_title">Germany</string>
-    <string name="infoGermany_summary">Game was released in Germany</string>
     <string name="infoFrance_title">France</string>
-    <string name="infoFrance_summary">Game was released in France</string>
+    <string name="infoGermany_title">Germany</string>
     <string name="infoItaly_title">Italy</string>
-    <string name="infoItaly_summary">Game was released in Italy</string>
     <string name="infoSpain_title">Spain</string>
-    <string name="infoSpain_summary">Game was released in Spain</string>
-    <string name="infoPublicDomain_title">Public domain</string>
-    <string name="infoPublicDomain_summary">Game was released into the public domain</string>
 
     <!-- Preference Screens -->
     <string name="screenInput_title">Input</string>
@@ -241,8 +229,6 @@
     <string name="screenVideo_summary">Graphics settings</string>
     <string name="screenAdvanced_title">Advanced</string>
     <string name="screenAdvanced_summary">Core, storage, and debug settings</string>
-    <string name="screenGameSettings_title">Settings</string>
-    <string name="screenGameSettings_summary">Emulation, touchscreen, controller, multi-player, and cheat settings</string>
     <string name="screenCheats_title">Cheats</string>
     <string name="screenCheats_summaryEnabled">Enabled</string>
     <string name="screenCheats_summaryDisabled">Disabled</string>
@@ -307,6 +293,15 @@
     <!-- Gallery sections -->
     <string name="galleryRecentlyPlayed">Recently played</string>
     <string name="galleryLibrary">Library</string>
+    <string name="sort">Sort</string>
+    <string name="name">Name</string>
+    <string name="date">Date</string>
+    <string name="players">Players</string>
+    <string name="developer">Developer</string>
+    <string name="publisher">Publisher</string>
+    <string name="genre">Genre</string>
+    <string name="esrb">ESRB Rating</string>
+    <string name="lastPlayed">Last played</string>
 
     <!-- List Preferences (in this app, most ListPreferences use android:summary="@string/selectedValue") -->
     <string name="touchscreenAutoHold_title">Button auto-hold</string>
@@ -496,13 +491,15 @@
     <string name="cheat_disabled">(disabled)</string>
     <string name="cheatOption_title">Full text</string>
     <string name="cheatNotes_title">Notes</string>
-    <string name="cheatNotes_none">(no notes available for this cheat)</string>
+    <string name="cheatNotes_none"></string>
+    <string name="newCheat_title">New Cheat...</string>
+    <string name="newCheat_summary">Add your own custom cheat</string>
 
     <!-- Cheat Editor -->
     <string name="menuItem_cheatEditor">Cheat editor</string>
     <string name="cheatEditor_empty">Empty cheat</string>
     <string name="cheatEditor_added">Empty cheat added at bottom of list</string>
-    <string name="cheatEditor_edit">Edit cheats</string>
+    <string name="cheatEditor_edit">Edit cheats...</string>
     <string name="cheatEditor_edit_desc">Long press a cheat to edit it</string>
     <string name="cheatEditor_help">Help</string>
     <string name="cheatEditor_readme1">Welcome to the Mupen64plus AE Cheat editor</string>

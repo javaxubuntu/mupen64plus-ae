@@ -26,6 +26,7 @@ import paulscode.android.mupen64plusae.DrawerDrawable;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.text.TextUtils;
 import android.content.Context;
 import android.view.ViewTreeObserver.OnScrollChangedListener;
 import android.widget.ImageView;
@@ -132,7 +133,7 @@ public class GameSidebar extends ScrollView
         iconView.setImageResource( icon );
         text1.setText( title );
         text2.setText( summary );
-        if ( summary == null )
+        if ( TextUtils.isEmpty( summary ) )
             text2.setVisibility( View.GONE );
         
         ImageView indicatorView = (ImageView) view.findViewById( R.id.indicator );
@@ -159,7 +160,7 @@ public class GameSidebar extends ScrollView
         });
     }
     
-    public void addROMInfo( String name )
+    public void addInformation( String name, String date, String developer, String publisher, String genre, String players, String esrb, int lastPlayed )
     {
         // Add a section explaining the region and dump information for the ROM
         // http://forums.emulator-zone.com/archive/index.php/t-5533.html
@@ -235,68 +236,68 @@ public class GameSidebar extends ScrollView
                 else if ( code.equals( "A" ) )
                 {
                     // A = Australia
-                    info.setTitle( mContext.getString( R.string.infoAustralia_title ) );
-                    info.setSummary( mContext.getString( R.string.infoAustralia_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoRegion_title ) );
+                    info.setSummary( mContext.getString( R.string.infoAustralia_title ) );
                 }
                 else if ( code.equals( "U" ) )
                 {
                     // U = USA
-                    info.setTitle( mContext.getString( R.string.infoUSA_title ) );
-                    info.setSummary( mContext.getString( R.string.infoUSA_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoRegion_title ) );
+                    info.setSummary( mContext.getString( R.string.infoUSA_title ) );
                 }
                 else if ( code.equals( "J" ) )
                 {
                     // J = Japan
-                    info.setTitle( mContext.getString( R.string.infoJapan_title ) );
-                    info.setSummary( mContext.getString( R.string.infoJapan_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoRegion_title ) );
+                    info.setSummary( mContext.getString( R.string.infoJapan_title ) );
                 }
                 else if ( code.equals( "JU" ) )
                 {
                     // JU = Japan and USA
-                    info.setTitle( mContext.getString( R.string.infoJapanUSA_title ) );
-                    info.setSummary( mContext.getString( R.string.infoJapanUSA_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoRegion_title ) );
+                    info.setSummary( mContext.getString( R.string.infoJapanUSA_title ) );
                 }
                 else if ( code.equals( "E" ) )
                 {
                     // E = Europe
-                    info.setTitle( mContext.getString( R.string.infoEurope_title ) );
-                    info.setSummary( mContext.getString( R.string.infoEurope_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoRegion_title ) );
+                    info.setSummary( mContext.getString( R.string.infoEurope_title ) );
                 }
                 else if ( code.equals( "G" ) )
                 {
                     // G = Germany
-                    info.setTitle( mContext.getString( R.string.infoGermany_title ) );
-                    info.setSummary( mContext.getString( R.string.infoGermany_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoRegion_title ) );
+                    info.setSummary( mContext.getString( R.string.infoGermany_title ) );
                 }
                 else if ( code.equals( "F" ) )
                 {
                     // F = France
-                    info.setTitle( mContext.getString( R.string.infoFrance_title ) );
-                    info.setSummary( mContext.getString( R.string.infoFrance_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoRegion_title ) );
+                    info.setSummary( mContext.getString( R.string.infoFrance_title ) );
                 }
                 else if ( code.equals( "S" ) )
                 {
                     // S = Spain
-                    info.setTitle( mContext.getString( R.string.infoSpain_title ) );
-                    info.setSummary( mContext.getString( R.string.infoSpain_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoRegion_title ) );
+                    info.setSummary( mContext.getString( R.string.infoSpain_title ) );
                 }
                 else if ( code.equals( "I" ) )
                 {
                     // I = Italy
-                    info.setTitle( mContext.getString( R.string.infoItaly_title ) );
-                    info.setSummary( mContext.getString( R.string.infoItaly_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoRegion_title ) );
+                    info.setSummary( mContext.getString( R.string.infoItaly_title ) );
                 }
                 else if ( code.equals( "PD" ) )
                 {
                     // PD = public domain
-                    info.setTitle( mContext.getString( R.string.infoPublicDomain_title ) );
-                    info.setSummary( mContext.getString( R.string.infoPublicDomain_summary ) );
+                    //info.setTitle( mContext.getString( R.string.infoPublicDomain_title ) );
+                    //info.setSummary( mContext.getString( R.string.infoPublicDomain_summary ) );
                 }
                 else if ( code.startsWith( "M" ) )
                 {
                     // M# = multi-language
-                    info.setTitle( mContext.getString( R.string.infoLanguage_title, code.substring( 1 ) ) );
-                    info.setSummary( mContext.getString( R.string.infoLanguage_summary ) );
+                    info.setTitle( mContext.getString( R.string.infoMultilanguage_title ) );
+                    info.setSummary( mContext.getString( R.string.infoMultilanguage_summary, code.substring( 1 ) ) );
                 }
                 else
                 {
@@ -319,26 +320,26 @@ public class GameSidebar extends ScrollView
             else if ( code.startsWith( "V" ) && code.length() <= 6 )
             {
                 // V = version code
-                info.setTitle( mContext.getString( R.string.infoVersion_title, code.substring(1) ) );
-                info.setSummary( mContext.getString( R.string.infoVersion_summary ) );
+                info.setTitle( mContext.getString( R.string.infoVersion_title ) );
+                info.setSummary( code.substring(1) );
             }
             else if ( code.startsWith( "PAL" ) )
             {
                 // PAL = PAL version
-                info.setTitle( mContext.getString( R.string.infoPAL_title ) );
-                info.setSummary( mContext.getString( R.string.infoPAL_summary ) );
+                info.setTitle( mContext.getString( R.string.infoCompatibility_title ) );
+                info.setSummary( mContext.getString( R.string.infoPAL_title ) );
             }
             else if ( code.startsWith( "PAL-NTSC" ) )
             {
                 // PAL-NTSC = PAL and NTSC compatible
-                info.setTitle( mContext.getString( R.string.infoPALNTSC_title ) );
-                info.setSummary( mContext.getString( R.string.infoPALNTSC_summary ) );
+                info.setTitle( mContext.getString( R.string.infoCompatibility_title ) );
+                info.setSummary( mContext.getString( R.string.infoPALNTSC_title ) );
             }
             else if ( code.startsWith( "NTSC" ) )
             {
                 // NTSC = NTSC version
-                info.setTitle( mContext.getString( R.string.infoNTSC_title ) );
-                info.setSummary( mContext.getString( R.string.infoNTSC_summary ) );
+                info.setTitle( mContext.getString( R.string.infoCompatibility_title ) );
+                info.setSummary( mContext.getString( R.string.infoNTSC_title ) );
             }
             else
             {
@@ -353,8 +354,30 @@ public class GameSidebar extends ScrollView
             index = endIndex + 1;
         }
         
-        if ( prefs.size() > 0 )
+        boolean addHeading = ( !TextUtils.isEmpty( developer ) || !TextUtils.isEmpty( publisher ) || !TextUtils.isEmpty( date ) || !TextUtils.isEmpty( genre ) || !TextUtils.isEmpty( players ) || !TextUtils.isEmpty( esrb ) || lastPlayed > 0 );
+        
+        if ( prefs.size() > 0 || addHeading )
             this.addHeading( mContext.getString( R.string.categoryGameInfo_title ) );
+        
+        //if ( lastPlayed > 0 )
+        //    this.addRow( 0, "Last played", "Dunno", null );
+        if ( !TextUtils.isEmpty( developer ) )
+            this.addRow( 0, "Developer", developer, null );
+        if ( !TextUtils.isEmpty( publisher ) )
+            this.addRow( 0, "Publisher", publisher, null );
+        if ( !TextUtils.isEmpty( genre ) )
+            this.addRow( 0, "Genre", genre, null );
+        if ( !TextUtils.isEmpty( date ) )
+            this.addRow( 0, "Date", date, null );
+        if ( !TextUtils.isEmpty( players ) )
+        {
+            if ( "1".equals( players ) )
+                this.addRow( 0, "Players", players, null );
+            else
+                this.addRow( 0, "Players", "1 – " + players, null );
+        }
+        if ( !TextUtils.isEmpty( esrb ) )
+            this.addRow( 0, "ESRB Rating", esrb, null );
         
         for ( Preference pref : prefs )
             this.addRow( 0, pref.getTitle().toString(), pref.getSummary().toString(), null );

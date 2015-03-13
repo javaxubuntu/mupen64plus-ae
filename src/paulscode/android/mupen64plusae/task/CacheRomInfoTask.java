@@ -325,6 +325,12 @@ public class CacheRomInfoTask extends AsyncTask<Void, ConfigSection, ConfigFile>
             config.put( md5, "baseName", detail.baseName );
         config.put( md5, "romPath", file.getAbsolutePath() );
         config.put( md5, "artPath", artPath );
+        config.put( md5, "players", detail.players + "" );
+        config.put( md5, "date", detail.date );
+        config.put( md5, "developer", detail.developer );
+        config.put( md5, "publisher", detail.publisher );
+        config.put( md5, "genre", detail.genre );
+        config.put( md5, "esrb", detail.esrb );
         
         // ConfigSections that do not have the "exists" key will be removed
         config.put( md5, "exists", "true" );

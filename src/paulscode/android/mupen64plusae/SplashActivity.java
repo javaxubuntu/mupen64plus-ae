@@ -170,9 +170,19 @@ public class SplashActivity extends Activity implements ExtractAssetsListener
         @Override
         public void run()
         {
-            if( mAppData.getAssetVersion() != ASSET_VERSION )
+            // Extract and merge the assets if they are out of date
+            boolean outdated = ( mAppData.getAssetVersion() != ASSET_VERSION );
+            if ( !outdated )
             {
-                // Extract and merge the assets if they are out of date
+                // If the mupen64plus.ini file has been updated, extract the new version
+                //File destINI = new File( mAppData.coreSharedDataDir + "/mupen64plus.ini" );
+                //File srcINI = new File( );
+                //if ( srcINI.lastModified().compare( destINI.lastModified() ) > 0 )
+                //    outdated = true;
+            }
+            
+            if( outdated )
+            {
                 FileUtil.deleteFolder( new File( mAppData.coreSharedDataDir ) );
                 mAssetsExtracted = 0;
                 new ExtractAssetsTask( getAssets(), SOURCE_DIR, mAppData.coreSharedDataDir, SplashActivity.this ).execute();

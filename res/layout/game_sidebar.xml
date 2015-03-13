@@ -10,12 +10,12 @@
 
         <LinearLayout
             android:id="@+id/imageLayout"
-            android:layout_width="259dip"
-            android:layout_height="180dip" >
+            android:layout_width="279dip"
+            android:layout_height="193dip" >
             <ImageView
                 android:id="@+id/imageArt"
                 android:layout_width="match_parent"
-                android:layout_height="180dip"
+                android:layout_height="193dip"
                 android:src="@drawable/default_coverart" />
         </LinearLayout>
 

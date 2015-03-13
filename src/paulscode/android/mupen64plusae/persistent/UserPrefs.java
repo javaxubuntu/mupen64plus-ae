@@ -233,6 +233,8 @@ public class UserPrefs
     private static final String KEY_SHOW_FULL_NAMES = "showFullNames";
     private static final String KEY_ROMS_DIRS = "pathRomsDirs";
     private static final String KEY_ROMS_DIRS_SEARCH_ZIPS = "pathRomsDirsSearchZips";
+    private static final String KEY_GALLERY_SORT = "gallerySort";
+    private static final String KEY_GALLERY_SORT_REVERSE = "gallerySortReverse";
     // ... add more as needed
     
     // Shared preferences default values
@@ -246,7 +248,19 @@ public class UserPrefs
     public static final boolean DEFAULT_CLEAR_GALLERY = true;
     public static final boolean DEFAULT_SHOW_RECENTLY_PLAYED = true;
     public static final boolean DEFAULT_SHOW_FULL_NAMES = false;
+    public static final String DEFAULT_GALLERY_SORT = "name";
+    public static final boolean DEFAULT_GALLERY_SORT_REVERSE = false;
     // ... add more as needed
+    
+    // Gallery sorting options
+    public static final String SORT_BY_NAME = "name";
+    public static final String SORT_BY_DATE = "date";
+    public static final String SORT_BY_DEVELOPER = "developer";
+    public static final String SORT_BY_PUBLISHER = "publisher";
+    public static final String SORT_BY_LAST_PLAYED = "lastPlayed";
+    public static final String SORT_BY_GENRE = "genre";
+    public static final String SORT_BY_ESRB = "serb";
+    public static final String SORT_BY_PLAYERS = "players";
     
     private final SharedPreferences mPreferences;
     private final Locale mLocale;
@@ -676,6 +690,16 @@ public class UserPrefs
         return getBoolean( KEY_SHOW_FULL_NAMES, DEFAULT_SHOW_FULL_NAMES );
     }
     
+    public String getGallerySort()
+    {
+        return getString( KEY_GALLERY_SORT, DEFAULT_GALLERY_SORT );
+    }
+    
+    public boolean getGallerySortReverse()
+    {
+        return getBoolean( KEY_GALLERY_SORT_REVERSE, DEFAULT_GALLERY_SORT_REVERSE );
+    }
+    
     public void putEmulationProfileDefault( String value )
     {
         putString( KEY_EMULATION_PROFILE_DEFAULT, value );
@@ -699,6 +723,16 @@ public class UserPrefs
     public void putPlayerMapReminder( boolean value )
     {
         putBoolean( KEY_PLAYER_MAP_REMINDER, value );
+    }
+    
+    public void putGallerySort( String value )
+    {
+        putString( KEY_GALLERY_SORT, value );
+    }
+    
+    public void putGallerySortReverse( boolean value )
+    {
+        putBoolean( KEY_GALLERY_SORT_REVERSE, value );
     }
     
     private boolean getBoolean( String key, boolean defaultValue )

@@ -173,6 +173,22 @@ public class RomDatabase
         return results;
     }
     
+    public static String baseNameForName( String goodName )
+    {
+        // Extract basename (goodname without the extra parenthetical tags)
+        return goodName.split( " \\(" )[0].trim();
+    }
+    
+    public static String wikiUrlForName( String goodName )
+    {
+        // Generate wiki page URL string
+        String baseName = baseNameForName( goodName );
+        String wikiUrl = String.format( WIKI_URL_TEMPLATE, baseName.replaceAll( " ", "_" ) );
+        if( goodName.contains( "(Kiosk" ) )
+            wikiUrl += "_(Kiosk_Demo)";
+        return wikiUrl;
+    }
+    
     public class RomDetail
     {
         public final String crc;
@@ -185,6 +201,11 @@ public class RomDatabase
         public final int status;
         public final int players;
         public final boolean rumble;
+        public final String date;
+        public final String developer;
+        public final String publisher;
+        public final String genre;
+        public final String esrb;
         
         private RomDetail( ConfigSection section )
         {
@@ -202,19 +223,13 @@ public class RomDatabase
             
             if( goodName != null )
             {
-                // Extract basename (goodname without the extra parenthetical tags)
-                baseName = goodName.split( " \\(" )[0].trim();
+                baseName = baseNameForName( goodName );
                 
                 // Generate the cover art URL string
                 artName = baseName.replaceAll( "['\\.]", "" ).replaceAll( "\\W+", "_" ) + ".png";
                 artUrl = String.format( ART_URL_TEMPLATE, artName );
                 
-                // Generate wiki page URL string
-                String _wikiUrl = null;
-                _wikiUrl = String.format( WIKI_URL_TEMPLATE, baseName.replaceAll( " ", "_" ) );
-                if( goodName.contains( "(Kiosk" ) )
-                    _wikiUrl += "_(Kiosk_Demo)";
-                wikiUrl = _wikiUrl;
+                wikiUrl = wikiUrlForName( goodName );
             }
             else
             {
@@ -241,6 +256,11 @@ public class RomDatabase
                 status = TextUtils.isEmpty( statusString ) ? 0 : Integer.parseInt( statusString );
                 players = TextUtils.isEmpty( playersString ) ? 4 : Integer.parseInt( playersString );
                 rumble = TextUtils.isEmpty( rumbleString ) ? true : "Yes".equals( rumbleString );
+                date = section.get( "Date" );
+                developer = section.get( "Developer" );
+                publisher = section.get( "Publisher" );
+                genre = section.get( "Genre" );
+                esrb = section.get( "ESRB" );
             }
             else
             {
@@ -250,6 +270,11 @@ public class RomDatabase
                 status = 0;
                 players = 4;
                 rumble = true;
+                date = null;
+                developer = null;
+                publisher = null;
+                esrb = null;
+                genre = null;
             }
         }
         
@@ -271,6 +296,11 @@ public class RomDatabase
             status = 0;
             players = 4;
             rumble = true;
+            date = null;
+            developer = null;
+            publisher = null;
+            genre = null;
+            esrb = null;
         }
     }
 }
