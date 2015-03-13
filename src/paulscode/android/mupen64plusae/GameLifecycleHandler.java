@@ -72,6 +72,9 @@ import android.support.v4.view.GravityCompat;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.inputmethod.InputMethodManager;
 
+import paulscode.android.mupen64plusae.util.RomDatabase;
+import paulscode.android.mupen64plusae.util.Utility;
+
 import com.bda.controller.Controller;
 
 //@formatter:off
@@ -134,6 +137,12 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
     private final String mRomMd5;
     private final String mRomName;
     private final String mArtPath;
+    private final String mRomDate;
+    private final String mRomDeveloper;
+    private final String mRomPublisher;
+    private final String mRomGenre;
+    private final String mRomESRB;
+    private final String mRomPlayers;
     private final String mCheatArgs;
     private final boolean mDoRestart;
     
@@ -163,6 +172,12 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         mRomMd5 = extras.getString( Keys.Extras.ROM_MD5 );
         mArtPath = extras.getString( Keys.Extras.ART_PATH );
         mRomName = extras.getString( Keys.Extras.ROM_NAME );
+        mRomDate = extras.getString( Keys.Extras.ROM_DATE );
+        mRomDeveloper = extras.getString( Keys.Extras.ROM_DEVELOPER );
+        mRomPublisher = extras.getString( Keys.Extras.ROM_PUBLISHER );
+        mRomGenre = extras.getString( Keys.Extras.ROM_GENRE );
+        mRomESRB = extras.getString( Keys.Extras.ROM_ESRB );
+        mRomPlayers = extras.getString( Keys.Extras.ROM_PLAYERS );
         mCheatArgs = extras.getString( Keys.Extras.CHEAT_ARGS );
         mDoRestart = extras.getBoolean( Keys.Extras.DO_RESTART, false );
         if( TextUtils.isEmpty( mRomPath ) || TextUtils.isEmpty( mRomMd5 ) )
@@ -220,11 +235,9 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         if ( !TextUtils.isEmpty( mArtPath ) && new File( mArtPath ).exists() )
             mGameSidebar.setImage( new BitmapDrawable( mActivity.getResources(), mArtPath ) );
         
-        String romName = null;
+        String romName = mRomName;
         if ( mRomName != null && !mUserPrefs.getShowFullNames() )
-            romName = mRomName.split( " \\(" )[0].trim();
-        else
-            romName = mRomName;
+            romName = RomDatabase.baseNameForName( mRomName );
         mGameSidebar.setTitle( romName );
         updateSidebar();
         
@@ -305,29 +318,25 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 }
             });
         
-        // Slot load
-        mGameSidebar.addRow( R.drawable.ic_folder,
-            mActivity.getString( R.string.menuItem_slotLoad ),
-            null,
+        mGameSidebar.addRow( 0x0, mActivity.getString( R.string.menuItem_setSpeed ), null,
             new GameSidebar.Action()
             {
                 @Override
                 public void onAction()
                 {
-                    CoreInterface.loadSlot();
+                    CoreInterface.setCustomSpeedFromPrompt();
                 }
             });
         
-        // Slot save
-        mGameSidebar.addRow( R.drawable.ic_save,
-            mActivity.getString( R.string.menuItem_slotSave ),
+        mGameSidebar.addRow( R.drawable.ic_picture,
+            mActivity.getString( R.string.menuItem_screenshot ),
             null,
             new GameSidebar.Action()
             {
                 @Override
                 public void onAction()
                 {
-                    CoreInterface.saveSlot();
+                    CoreInterface.screenshot();
                 }
             });
         
@@ -371,6 +380,32 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
             }
         }
         
+        // Slot load
+        mGameSidebar.addRow( R.drawable.ic_folder,
+            mActivity.getString( R.string.menuItem_slotLoad ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    CoreInterface.loadSlot();
+                }
+            });
+        
+        // Slot save
+        mGameSidebar.addRow( R.drawable.ic_save,
+            mActivity.getString( R.string.menuItem_slotSave ),
+            null,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    CoreInterface.saveSlot();
+                }
+            });
+        
         mGameSidebar.addRow( 0x0, mActivity.getString( R.string.menuItem_fileLoad ), null,
             new GameSidebar.Action()
             {
@@ -388,26 +423,6 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 public void onAction()
                 {
                     CoreInterface.saveFileFromPrompt();
-                }
-            });
-        
-        mGameSidebar.addRow( 0x0, mActivity.getString( R.string.menuItem_screenshot ), null,
-            new GameSidebar.Action()
-            {
-                @Override
-                public void onAction()
-                {
-                    CoreInterface.screenshot();
-                }
-            });
-        
-        mGameSidebar.addRow( 0x0, mActivity.getString( R.string.menuItem_setSpeed ), null,
-            new GameSidebar.Action()
-            {
-                @Override
-                public void onAction()
-                {
-                    CoreInterface.setCustomSpeedFromPrompt();
                 }
             });
         
@@ -552,7 +567,39 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 }
             });
         
-        mGameSidebar.addROMInfo( mRomName );
+        // Add a Help & Feedback section for Wiki and Report Bug
+        mGameSidebar.addHeading( mActivity.getString( R.string.menuItem_help ) );
+        
+        final String wikiUrl = RomDatabase.wikiUrlForName( mRomName );
+        if( !TextUtils.isEmpty( wikiUrl ) )
+        {
+            mGameSidebar.addRow( R.drawable.ic_help,
+                mActivity.getString( R.string.actionWiki_title ),
+                mActivity.getString( R.string.actionWiki_summary ),
+                new GameSidebar.Action()
+                {
+                    @Override
+                    public void onAction()
+                    {
+                        Utility.launchUri( mActivity, wikiUrl );
+                    }
+                });
+        }
+        
+        mGameSidebar.addRow( R.drawable.ic_debug,
+            mActivity.getString( R.string.menuItem_reportBug ),
+            mActivity.getString( R.string.menuItem_reportBug_subtitle, RomDatabase.baseNameForName( mRomName ) ),
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        // Lastly, add the game information
+        mGameSidebar.addInformation( mRomName, mRomDate, mRomDeveloper, mRomPublisher, mRomGenre, mRomPlayers, mRomESRB, 0 );
     }
     
     public void onStart()

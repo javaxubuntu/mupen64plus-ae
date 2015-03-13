@@ -101,6 +101,12 @@ public class PlayMenuActivity extends PreferenceToolbarActivity implements OnPre
     private String mRomMd5 = null;
     private String mArtPath = null;
     private String mRomName = null;
+    private String mRomDate = null;
+    private String mRomDeveloper = null;
+    private String mRomPublisher = null;
+    private String mRomGenre = null;
+    private String mRomESRB = null;
+    private String mRomPlayers = null;
     private RomHeader mRomHeader = null;
     private RomDatabase mRomDatabase = null;
     private RomDetail mRomDetail = null;
@@ -135,8 +141,14 @@ public class PlayMenuActivity extends PreferenceToolbarActivity implements OnPre
         mRomMd5 = extras.getString( Keys.Extras.ROM_MD5 );
         if( TextUtils.isEmpty( mRomPath ) || TextUtils.isEmpty( mRomMd5 ) )
             throw new Error( "ROM path and MD5 must be passed via the extras bundle" );
-        mRomName = extras.getString( Keys.Extras.ROM_NAME);
-        mArtPath = extras.getString( Keys.Extras.ART_PATH);
+        mRomName = extras.getString( Keys.Extras.ROM_NAME );
+        mArtPath = extras.getString( Keys.Extras.ART_PATH );
+        mRomDate = extras.getString( Keys.Extras.ROM_DATE );
+        mRomDeveloper = extras.getString( Keys.Extras.ROM_DEVELOPER );
+        mRomPublisher = extras.getString( Keys.Extras.ROM_PUBLISHER );
+        mRomGenre = extras.getString( Keys.Extras.ROM_GENRE );
+        mRomESRB = extras.getString( Keys.Extras.ROM_ESRB );
+        mRomPlayers = extras.getString( Keys.Extras.ROM_PLAYERS );
         
         // Initialize MOGA controller API
         // TODO: Remove hack after MOGA SDK is fixed
@@ -297,7 +309,7 @@ public class PlayMenuActivity extends PreferenceToolbarActivity implements OnPre
         mGamePrefs = new GamePrefs( this, mRomMd5, mRomHeader );
         
         // Set cheats screen summary text
-        mScreenCheats.setSummary( mGamePrefs.isCheatOptionsShown
+        mScreenCheats.setSummary( mGamePrefs.getCheatsEnabled()
                 ? R.string.screenCheats_summaryEnabled
                 : R.string.screenCheats_summaryDisabled );
         
@@ -322,7 +334,7 @@ public class PlayMenuActivity extends PreferenceToolbarActivity implements OnPre
     
     private void refreshCheatsCategory()
     {
-        if( mGamePrefs.isCheatOptionsShown )
+        if( mGamePrefs.getCheatsEnabled() )
         {
             // Populate menu items
             buildCheatsCategory( mRomHeader.crc );
@@ -464,6 +476,12 @@ public class PlayMenuActivity extends PreferenceToolbarActivity implements OnPre
         intent.putExtra( Keys.Extras.DO_RESTART, isRestarting );
         intent.putExtra( Keys.Extras.ART_PATH, mArtPath );
         intent.putExtra( Keys.Extras.ROM_NAME, mRomName );
+        intent.putExtra( Keys.Extras.ROM_DATE, mRomDate );
+        intent.putExtra( Keys.Extras.ROM_DEVELOPER, mRomDeveloper );
+        intent.putExtra( Keys.Extras.ROM_PUBLISHER, mRomPublisher );
+        intent.putExtra( Keys.Extras.ROM_GENRE, mRomGenre );
+        intent.putExtra( Keys.Extras.ROM_ESRB, mRomESRB );
+        intent.putExtra( Keys.Extras.ROM_PLAYERS, mRomPlayers );
         
         startActivity( intent );
     }

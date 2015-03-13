@@ -26,6 +26,7 @@ import java.util.Comparator;
 
 import org.mupen64plusae.v3.alpha.R;
 
+import java.lang.Integer;
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.text.TextUtils;
@@ -52,13 +53,20 @@ public class GalleryItem
     public final String goodName;
     public final String baseName;
     public final String artPath;
+    public final String romPath;
+    public final String date;
+    public final String developer;
+    public final String publisher;
+    public final String genre;
+    public final String esrb;
     public final int lastPlayed;
     public final File romFile;
     public final Context context;
     public final boolean isHeading;
     public BitmapDrawable artBitmap;
+    public final int players;
     
-    public GalleryItem( Context context, String md5, String goodName, String baseName, String romPath, String artPath, int lastPlayed )
+    public GalleryItem( Context context, String md5, String goodName, String baseName, String romPath, String artPath, String date, String developer, String publisher, String genre, String players, String esrb, int lastPlayed )
     {
         this.md5 = md5;
         this.goodName = goodName;
@@ -67,7 +75,17 @@ public class GalleryItem
         this.artPath = artPath;
         this.artBitmap = null;
         this.lastPlayed = lastPlayed;
+        this.date = ( date != null ) ? date : "";
+        this.developer = ( developer != null ) ? developer : "";
+        this.publisher = ( publisher != null ) ? publisher : "";
+        this.genre = ( genre != null ) ? genre : "";
+        this.esrb = ( esrb != null ) ? esrb : "";
+        if ( players != null )
+            this.players = Integer.parseInt( players );
+        else
+            this.players = 1;
         this.isHeading = false;
+        this.romPath = romPath;
         
         romFile = TextUtils.isEmpty( romPath ) ? null : new File( romPath );
     }
@@ -82,6 +100,13 @@ public class GalleryItem
         this.artPath = null;
         this.artBitmap = null;
         this.lastPlayed = 0;
+        this.date = "";
+        this.developer = "";
+        this.publisher = "";
+        this.genre = "";
+        this.esrb = "";
+        this.players = 0;
+        this.romPath = null;
         romFile = null;
     }
     
@@ -119,11 +144,67 @@ public class GalleryItem
         }
     }
     
-    public static class RecentlyPlayedComparator implements Comparator<GalleryItem>
+    public static class DateComparator implements Comparator<GalleryItem>
     {
         @Override
         public int compare( GalleryItem item1, GalleryItem item2 )
         {
+            return item1.date.compareToIgnoreCase( item2.date );
+        }
+    }
+    
+    public static class DeveloperComparator implements Comparator<GalleryItem>
+    {
+        @Override
+        public int compare( GalleryItem item1, GalleryItem item2 )
+        {
+            return item1.developer.compareToIgnoreCase( item2.developer );
+        }
+    }
+    
+    public static class PublisherComparator implements Comparator<GalleryItem>
+    {
+        @Override
+        public int compare( GalleryItem item1, GalleryItem item2 )
+        {
+            return item1.publisher.compareToIgnoreCase( item2.publisher );
+        }
+    }
+    
+    public static class GenreComparator implements Comparator<GalleryItem>
+    {
+        @Override
+        public int compare( GalleryItem item1, GalleryItem item2 )
+        {
+            return item1.genre.compareToIgnoreCase( item2.genre );
+        }
+    }
+    
+    public static class ESRBComparator implements Comparator<GalleryItem>
+    {
+        @Override
+        public int compare( GalleryItem item1, GalleryItem item2 )
+        {
+            return item1.esrb.compareToIgnoreCase( item2.esrb );
+        }
+    }
+    
+    public static class PlayersComparator implements Comparator<GalleryItem>
+    {
+        @Override
+        public int compare( GalleryItem item1, GalleryItem item2 )
+        {
+            return item1.players - item2.players;
+        }
+    }
+    
+    public static class LastPlayedComparator implements Comparator<GalleryItem>
+    {
+        @Override
+        public int compare( GalleryItem item1, GalleryItem item2 )
+        {
+            // Sort in reverse order since we want RECENTLY played ranked higher,
+            // not the item with the higher value for lastPlayed (LEAST recent)
             return item2.lastPlayed - item1.lastPlayed;
         }
     }

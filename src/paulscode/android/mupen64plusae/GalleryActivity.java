@@ -38,9 +38,11 @@ import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
 import paulscode.android.mupen64plusae.persistent.UserPrefs;
+import paulscode.android.mupen64plusae.persistent.GamePrefs;
 import paulscode.android.mupen64plusae.profile.ManageControllerProfilesActivity;
 import paulscode.android.mupen64plusae.profile.ManageEmulationProfilesActivity;
 import paulscode.android.mupen64plusae.profile.ManageTouchscreenProfilesActivity;
+import paulscode.android.mupen64plusae.profile.Profile;
 import paulscode.android.mupen64plusae.preference.RomsFolder;
 import paulscode.android.mupen64plusae.task.CacheRomInfoTask;
 import paulscode.android.mupen64plusae.task.CacheRomInfoTask.CacheRomInfoListener;
@@ -49,6 +51,8 @@ import paulscode.android.mupen64plusae.task.ComputeMd5Task.ComputeMd5Listener;
 import paulscode.android.mupen64plusae.util.DeviceUtil;
 import paulscode.android.mupen64plusae.util.Notifier;
 import paulscode.android.mupen64plusae.util.Utility;
+import paulscode.android.mupen64plusae.util.RomDatabase;
+import paulscode.android.mupen64plusae.util.RomHeader;
 import paulscode.android.mupen64plusae.MenuListView;
 import paulscode.android.mupen64plusae.GalleryView;
 import paulscode.android.mupen64plusae.GameSidebar;
@@ -65,6 +69,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.AdapterView;
 
@@ -102,6 +107,12 @@ import android.widget.LinearLayout;
 import android.util.DisplayMetrics;
 import android.view.inputmethod.InputMethodManager;
 
+import paulscode.android.mupen64plusae.cheat.CheatPreference;
+import paulscode.android.mupen64plusae.cheat.CheatUtils;
+import paulscode.android.mupen64plusae.cheat.CheatUtils.Cheat;
+import paulscode.android.mupen64plusae.cheat.CheatFile;
+import paulscode.android.mupen64plusae.cheat.CheatFile.CheatSection;
+
 public class GalleryActivity extends ActionBarActivity implements ComputeMd5Listener, CacheRomInfoListener
 {
     // Saved instance states
@@ -119,7 +130,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     private MenuListView mDrawerList;
     private ImageButton mActionButton;
     private SupportMenuItem mSearchItem;
-    private MenuItem mRefreshItem;
     private GameSidebar mGameSidebar;
     
     // Searching
@@ -138,8 +148,12 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     
     // Misc.
     private List<GalleryItem> mGalleryItems = null;
-    private String mSelectedMD5 = null;
+    private GalleryItem mSelectedItem = null;
     private boolean mDragging = false;
+    private GamePrefs mGamePrefs = null;
+    private RomHeader mRomHeader = null;
+    private boolean mShowCheats = false;
+    private boolean mShowGamepads = false;
     
     @Override
     protected void onNewIntent( Intent intent )
@@ -251,7 +265,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                         mDragging = false;
                         mDrawerList.setVisibility( View.VISIBLE );
                         mGameSidebar.setVisibility( View.GONE );
-                        mSelectedMD5 = null;
+                        mSelectedItem = null;
                     }
                 }
             }
@@ -262,7 +276,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 // Hide the game information sidebar
                 mDrawerList.setVisibility( View.VISIBLE );
                 mGameSidebar.setVisibility( View.GONE );
-                mSelectedMD5 = null;
+                mSelectedItem = null;
                 
                 showActionButton();
                 super.onDrawerClosed( drawerView );
@@ -367,7 +381,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         });
         
         // Populate the gallery with the games
-        refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
+        refreshGrid();
         
         // Pop up a warning if the installation appears to be corrupt
         if( !mAppData.isValidInstallation )
@@ -379,13 +393,14 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         
         if ( savedInstanceState != null )
         {
-            mSelectedMD5 = savedInstanceState.getString( STATE_SIDEBAR );
-            if ( mSelectedMD5 != null )
+            mSelectedItem = null;
+            String md5 = savedInstanceState.getString( STATE_SIDEBAR );
+            if ( md5 != null )
             {
                 // Repopulate the game sidebar
                 for ( GalleryItem item : mGalleryItems )
                 {
-                    if ( mSelectedMD5.equals( item.md5 ) )
+                    if ( md5.equals( item.md5 ) )
                     {
                         onGalleryItemClick( item, null );
                         break;
@@ -403,7 +418,10 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     public void onSaveInstanceState( Bundle savedInstanceState )
     {
         savedInstanceState.putString( STATE_QUERY, mSearchView.getQuery().toString() );
-        savedInstanceState.putString( STATE_SIDEBAR, mSelectedMD5 );
+        if ( mSelectedItem != null )
+            savedInstanceState.putString( STATE_SIDEBAR, mSelectedItem.md5 );
+        else
+            savedInstanceState.putString( STATE_SIDEBAR, null );
         
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -506,7 +524,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     public boolean onCreateOptionsMenu( Menu menu )
     {
         getMenuInflater().inflate( R.menu.gallery_activity, menu );
-        mRefreshItem = menu.findItem( R.id.menuItem_refreshRoms );
         
         SearchManager searchManager = (SearchManager) this.getSystemService( Context.SEARCH_SERVICE );
         mSearchItem = (SupportMenuItem) menu.findItem( R.id.menuItem_search );
@@ -518,7 +535,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             public boolean onMenuItemActionCollapse( MenuItem item )
             {
                 mSearchQuery = "";
-                refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
+                refreshGrid();
                 return true;
             }
             
@@ -534,14 +551,13 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         {
             public boolean onQueryTextSubmit( String query )
             {
-                
                 return false;
             }
             
             public boolean onQueryTextChange( String query )
             {
                 mSearchQuery = query;
-                refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
+                refreshGrid();
                 return false;
             }
         });
@@ -557,6 +573,48 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     }
     
     @Override
+    public boolean onPrepareOptionsMenu( Menu menu )
+    {
+        MenuItem sortItem = menu.findItem( R.id.menuItem_sort );
+        if ( mUserPrefs.getGallerySortReverse() )
+            sortItem.setIcon( getResources().getDrawable( R.drawable.ic_sort_desc ) );
+        else
+            sortItem.setIcon( getResources().getDrawable( R.drawable.ic_sort_asc ) );
+        
+        SubMenu submenu = sortItem.getSubMenu();
+        if ( mUserPrefs.SORT_BY_DATE.equals( mUserPrefs.getGallerySort() ) )
+            submenu.findItem( R.id.menuItem_date ).setChecked( true );
+        else if ( mUserPrefs.SORT_BY_DEVELOPER.equals( mUserPrefs.getGallerySort() ) )
+            submenu.findItem( R.id.menuItem_developer ).setChecked( true );
+        else if ( mUserPrefs.SORT_BY_LAST_PLAYED.equals( mUserPrefs.getGallerySort() ) )
+            submenu.findItem( R.id.menuItem_lastPlayed ).setChecked( true );
+        else if ( mUserPrefs.SORT_BY_PUBLISHER.equals( mUserPrefs.getGallerySort() ) )
+            submenu.findItem( R.id.menuItem_publisher ).setChecked( true );
+        else if ( mUserPrefs.SORT_BY_GENRE.equals( mUserPrefs.getGallerySort() ) )
+            submenu.findItem( R.id.menuItem_genre ).setChecked( true );
+        else if ( mUserPrefs.SORT_BY_ESRB.equals( mUserPrefs.getGallerySort() ) )
+            submenu.findItem( R.id.menuItem_esrb ).setChecked( true );
+        else if ( mUserPrefs.SORT_BY_PLAYERS.equals( mUserPrefs.getGallerySort() ) )
+            submenu.findItem( R.id.menuItem_players ).setChecked( true );
+        else
+            submenu.findItem( R.id.menuItem_name ).setChecked( true );
+        
+        return super.onPrepareOptionsMenu( menu );
+    }
+    
+    private boolean setSortType( String sortType )
+    {
+        if ( sortType.equals( mUserPrefs.getGallerySort() ) )
+            mUserPrefs.putGallerySortReverse( !mUserPrefs.getGallerySortReverse() );
+        
+        mUserPrefs.putGallerySort( sortType );
+        invalidateOptionsMenu();
+        refreshGrid();
+        
+        return true;
+    }
+    
+    @Override
     public boolean onOptionsItemSelected( MenuItem menuItem )
     {
         switch( menuItem.getItemId() )
@@ -564,6 +622,22 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             case R.id.menuItem_refreshRoms:
                 refreshRoms( null );
                 return true;
+            case R.id.menuItem_name:
+                return setSortType( mUserPrefs.SORT_BY_NAME );
+            case R.id.menuItem_date:
+                return setSortType( mUserPrefs.SORT_BY_DATE );
+            case R.id.menuItem_developer:
+                return setSortType( mUserPrefs.SORT_BY_DEVELOPER );
+            case R.id.menuItem_publisher:
+                return setSortType( mUserPrefs.SORT_BY_PUBLISHER );
+            case R.id.menuItem_genre:
+                return setSortType( mUserPrefs.SORT_BY_GENRE );
+            case R.id.menuItem_esrb:
+                return setSortType( mUserPrefs.SORT_BY_ESRB );
+            case R.id.menuItem_players:
+                return setSortType( mUserPrefs.SORT_BY_PLAYERS );
+            case R.id.menuItem_lastPlayed:
+                return setSortType( mUserPrefs.SORT_BY_LAST_PLAYED );
             default:
                 return super.onOptionsItemSelected( menuItem );
         }
@@ -582,21 +656,122 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         }
     }
     
-    public void onGalleryItemClick( GalleryItem item, View parentView )
+    public void addProfiles( int icon, int title, int indentation, Profile profile, String builtinPath, String customPath, String defaultValue )
     {
-        mSelectedMD5 = item.md5;
+        // For now...
+        if ( profile == null ) return;
         
-        // Show the game info sidebar
-        mDrawerList.setVisibility( View.GONE );
-        mGameSidebar.setVisibility( View.VISIBLE );
-        mGameSidebar.scrollTo( 0, 0 );
+        mGameSidebar.addRow( icon,
+            getString( title ),
+            profile.name,
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            }, 0x0, indentation);
         
-        // Set the cover art in the sidebar
-        item.loadBitmap();
-        mGameSidebar.setImage( item.artBitmap );
+        /*ConfigFile configBuiltin = new ConfigFile( builtinPath );
+        ConfigFile configCustom = new ConfigFile( customPath );
+        List<Profile> profiles = new ArrayList<Profile>();
+        profiles.addAll( Profile.getProfiles( configBuiltin, true ) );
+        profiles.addAll( Profile.getProfiles( configCustom, false ) );
+        Collections.sort( profiles );
         
-        // Set the game title
-        mGameSidebar.setTitle( item.baseName );
+        int offset = mAllowDisable ? 1 : 0;
+        int numEntries = profiles.size() + offset;
+        CharSequence[] entries = new CharSequence[numEntries];
+        String[] values = new String[numEntries];
+        if( mAllowDisable )
+        {
+            entries[0] = getContext().getText( R.string.listItem_disabled );
+            values[0] = "";
+        }
+        for( int i = 0; i < profiles.size(); i++ )
+        {
+            Profile profile = profiles.get( i );
+            String entryHtml = profile.name;
+            if( !TextUtils.isEmpty( profile.comment ) )
+                entryHtml += "<br><small>" + profile.comment + "</small>";
+            entries[i + offset] = Html.fromHtml( entryHtml );
+            values[i + offset] = profile.name;
+        }
+        
+        // Set the list entries and values; select default if persisted selection no longer exists
+        setEntries( entries );
+        setEntryValues( values );
+        String selectedValue = getPersistedString( null );
+        if( !ArrayUtils.contains( values, selectedValue ) )
+            persistString( defaultValue );
+        selectedValue = getPersistedString( null );
+        setValue( selectedValue );*/
+    }
+    
+    private void addCheats()
+    {
+        if ( mSelectedItem == null || mRomHeader == null ) return;
+        
+        // Display the cheats for this game
+        String crc = mRomHeader.crc;
+        Log.v( "GalleryActivity", "building from CRC = " + crc );
+        if( crc == null )
+            return;
+        
+        // Get the appropriate section of the config file, using CRC as the key
+        CheatFile mupencheat_txt = new CheatFile( mAppData.mupencheat_txt );
+        CheatSection cheatSection = mupencheat_txt.match( "^" + crc.replace( ' ', '-' ) + ".*" );
+        if( cheatSection == null )
+        {
+            Log.w( "GalleryActivity", "No cheat section found for '" + crc + "'" );
+            return;
+        }
+        
+        ArrayList<Cheat> cheats = new ArrayList<Cheat>();
+        cheats.addAll( CheatUtils.populate( crc, mupencheat_txt, true, this ) );
+        CheatUtils.reset();
+        
+        // Layout the menu, populating it with appropriate cheat options
+        for( int i = 0; i < cheats.size(); i++ )
+        {
+            // Get the short title of the cheat (shown in the menu)
+            String title;
+            if( cheats.get( i ).name == null )
+                title = getString( R.string.cheats_defaultName, i );
+            else
+                title = cheats.get( i ).name;
+            String notes = cheats.get( i ).desc;
+            
+            /*String options = cheats.get( i ).option;
+            String[] optionStrings = null;
+            if( !TextUtils.isEmpty( options ) )
+                optionStrings = options.split( "\n" );
+            
+            // Create the menu item associated with this cheat
+            final CheatPreference pref = new CheatPreference( this, title, notes, optionStrings );
+            pref.setKey( crc + " Cheat" + i );*/
+            
+            /*int cheatIcon = R.drawable.ic_box;
+            if ( pref.isCheatEnabled() )
+                cheatIcon = R.drawable.ic_check;*/
+            
+            // Add the preference menu item to the cheats category
+            mGameSidebar.addRow( cheatIcon, title, notes, new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        }
+    }
+    
+    public void updateSidebar()
+    {
+        GalleryItem item = mSelectedItem;
+        if ( item == null ) return;
         
         // Set the game options
         mGameSidebar.clear();
@@ -612,8 +787,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 @Override
                 public void onAction()
                 {
-                    PlayMenuActivity.action = PlayMenuActivity.ACTION_RESUME;
-                    launchPlayMenuActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5 );
+                    launchGame( false );
                 }
             });
         
@@ -632,16 +806,15 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                         @Override
                         public void onConfirm()
                         {
-                            PlayMenuActivity.action = PlayMenuActivity.ACTION_RESTART;
-                            launchPlayMenuActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5 );
+                            launchGame( true );
                         }
                     });
                 }
             });
         
-        mGameSidebar.addRow( R.drawable.ic_settings,
-            getString( R.string.screenGameSettings_title ),
-            getString( R.string.screenGameSettings_summary ),
+        /*mGameSidebar.addRow( R.drawable.ic_settings,
+            "Settings",
+            null,
             new GameSidebar.Action()
             {
                 @Override
@@ -650,12 +823,236 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     PlayMenuActivity.action = null;
                     launchPlayMenuActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5 );
                 }
+            });*/
+        
+        // Cheats
+        int cheatsSummary = mGamePrefs.getCheatsEnabled()
+                ? R.string.screenCheats_summaryEnabled
+                : R.string.screenCheats_summaryDisabled;
+        
+        int cheatsIcon = R.drawable.ic_arrow_d;
+        if ( mShowCheats ) cheatsIcon = R.drawable.ic_arrow_u;
+        
+        mGameSidebar.addRow( R.drawable.ic_key,
+            getString( R.string.screenCheats_title ),
+            getString( cheatsSummary ),
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    mShowCheats = !mShowCheats;
+                    updateSidebar();
+                }
+            }, cheatsIcon, 0 );
+        
+        if ( mShowCheats )
+        {
+            int icon = R.drawable.ic_box;
+            if ( mGamePrefs.getCheatsEnabled() ) icon = R.drawable.ic_check;
+            
+            mGameSidebar.addRow( icon, getString( R.string.playShowCheats_title ), getString( R.string.playShowCheats_summary ), new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    mGamePrefs.putCheatsEnabled( !mGamePrefs.getCheatsEnabled() );
+                    updateSidebar();
+                }
+            }, 0x0, 0 );
+            
+            // Add the cheats available for this game
+            if ( mGamePrefs.getCheatsEnabled() )
+                addCheats();
+            
+            // New cheat
+            mGameSidebar.addRow( R.drawable.ic_plus, getString( R.string.newCheat_title ), getString( R.string.newCheat_summary ), new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    // Show the new cheat dialog
+                    
+                }
+            }, 0x0, 0 );
+        }
+        
+        // Add Emulation, Touchscreen, Controllers 1 through 4, and the Player Map
+        mGameSidebar.addHeading( getString( R.string.menuItem_profiles ) );
+        
+        addProfiles( R.drawable.ic_circuit, R.string.emulationProfile_title, 0, mGamePrefs.emulationProfile, mAppData.emulationProfiles_cfg, mUserPrefs.emulationProfiles_cfg, mUserPrefs.getEmulationProfileDefault() );
+        
+        addProfiles( R.drawable.ic_phone, R.string.touchscreenProfile_title, 0, mGamePrefs.touchscreenProfile, mAppData.touchscreenProfiles_cfg, mUserPrefs.touchscreenProfiles_cfg, mUserPrefs.getTouchscreenProfileDefault() );
+        
+        int gamepadIcon = R.drawable.ic_arrow_d;
+        if ( mShowGamepads ) gamepadIcon = R.drawable.ic_arrow_u;
+        
+        mGameSidebar.addRow( R.drawable.ic_gamepad,
+            getString( R.string.menuItem_controllerProfiles ),
+            "1 player configured",
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    mShowGamepads = !mShowGamepads;
+                    updateSidebar();
+                }
+            }, gamepadIcon, 0);
+        
+        if ( mShowGamepads )
+        {
+            if ( mSelectedItem.players >= 1 )
+                addProfiles( 0x0, R.string.controllerProfile1_title, 1, mGamePrefs.controllerProfile1, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
+            
+            if ( mSelectedItem.players >= 2 )
+                addProfiles( 0x0, R.string.controllerProfile2_title, 1, mGamePrefs.controllerProfile2, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
+            
+            if ( mSelectedItem.players >= 3 )
+                addProfiles( 0x0, R.string.controllerProfile3_title, 1, mGamePrefs.controllerProfile3, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
+            
+            if ( mSelectedItem.players >= 4 )
+                addProfiles( 0x0, R.string.controllerProfile4_title, 1, mGamePrefs.controllerProfile4, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
+        }
+        
+        
+        // Add a Help & Feedback section for Wiki, Report Bug, and Reset defaults
+        mGameSidebar.addHeading( getString( R.string.menuItem_help ) );
+        
+        final String wikiUrl = RomDatabase.wikiUrlForName( item.goodName );
+        if( !TextUtils.isEmpty( wikiUrl ) )
+        {
+            mGameSidebar.addRow( R.drawable.ic_help,
+                getString( R.string.actionWiki_title ),
+                getString( R.string.actionWiki_summary ),
+                new GameSidebar.Action()
+                {
+                    @Override
+                    public void onAction()
+                    {
+                        Utility.launchUri( finalContext, wikiUrl );
+                    }
+                });
+        }
+        
+        mGameSidebar.addRow( R.drawable.ic_debug,
+            getString( R.string.menuItem_reportBug ),
+            getString( R.string.menuItem_reportBug_subtitle, item.baseName ),
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
             });
         
-        mGameSidebar.addROMInfo( item.goodName );
+        mGameSidebar.addRow( R.drawable.ic_undo,
+            getString( R.string.actionResetGamePrefs_title ),
+            getString( R.string.actionResetGamePrefs_summary ),
+            new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
+        
+        // Lastly, add the Information section
+        mGameSidebar.addInformation( item.goodName, item.date, item.developer, item.publisher, item.genre, item.players + "", item.esrb, item.lastPlayed );
+    }
+    
+    public void onGalleryItemClick( GalleryItem item, View parentView )
+    {
+        mSelectedItem = item;
+        mRomHeader = new RomHeader( item.romPath );
+        mGamePrefs = new GamePrefs( this, item.md5, mRomHeader );
+        
+        // Show the game info sidebar
+        mDrawerList.setVisibility( View.GONE );
+        mGameSidebar.setVisibility( View.VISIBLE );
+        mGameSidebar.scrollTo( 0, 0 );
+        
+        // Set the cover art in the sidebar
+        item.loadBitmap();
+        mGameSidebar.setImage( item.artBitmap );
+        
+        // Set the game title
+        String romName = item.goodName;
+        if ( !mUserPrefs.getShowFullNames() )
+            romName = item.baseName;
+        mGameSidebar.setTitle( romName );
+        
+        updateSidebar();
         
         // Open the navigation drawer
         mDrawerLayout.openDrawer( GravityCompat.START );
+    }
+    
+    private void launchGame( boolean isRestarting )
+    {
+        if ( mSelectedItem == null ) return;
+        
+        // Popup the multi-player dialog if necessary and abort if any players are unassigned
+        if( mSelectedItem.players > 1 && mGamePrefs.playerMap.isEnabled()
+                && mUserPrefs.getPlayerMapReminder() )
+        {
+            mGamePrefs.playerMap.removeUnavailableMappings();
+            boolean needs1 = mGamePrefs.isControllerEnabled1 && !mGamePrefs.playerMap.isMapped( 1 );
+            boolean needs2 = mGamePrefs.isControllerEnabled2 && !mGamePrefs.playerMap.isMapped( 2 );
+            boolean needs3 = mGamePrefs.isControllerEnabled3 && !mGamePrefs.playerMap.isMapped( 3 )
+                    && mSelectedItem.players > 2;
+            boolean needs4 = mGamePrefs.isControllerEnabled4 && !mGamePrefs.playerMap.isMapped( 4 )
+                    && mSelectedItem.players > 3;
+            
+            /*if( needs1 || needs2 || needs3 || needs4 )
+            {
+                @SuppressWarnings( "deprecation" )
+                PlayerMapPreference pref = (PlayerMapPreference) findPreference( "playerMap" );
+                pref.show();
+                return;
+            }*/
+        }
+        
+        // Make sure that the storage is accessible
+        if( !mAppData.isSdCardAccessible() )
+        {
+            Log.e( "CheatMenuHandler", "SD Card not accessible in method onPreferenceClick" );
+            Notifier.showToast( this, R.string.toast_sdInaccessible );
+            return;
+        }
+        
+        // Notify user that the game activity is starting
+        Notifier.showToast( this, R.string.toast_launchingEmulator );
+        
+        // Update the ConfigSection with the new value for lastPlayed
+        String lastPlayed = Integer.toString( (int) ( new Date().getTime()/1000 ) );
+        ConfigFile config = new ConfigFile( mUserPrefs.romInfoCache_cfg );
+        if ( config != null )
+        {
+            config.put( mSelectedItem.md5, "lastPlayed", lastPlayed );
+            config.save();
+        }
+        
+        // Launch the appropriate game activity
+        Intent intent = mUserPrefs.isTouchpadEnabled ? new Intent( this,
+                GameActivityXperiaPlay.class ) : new Intent( this, GameActivity.class );
+        
+        // Pass the startup info via the intent
+        intent.putExtra( Keys.Extras.ROM_PATH, mSelectedItem.romPath );
+        intent.putExtra( Keys.Extras.ROM_MD5, mSelectedItem.md5 );
+        //intent.putExtra( Keys.Extras.CHEAT_ARGS, getCheatArgs() );
+        intent.putExtra( Keys.Extras.ART_PATH, mSelectedItem.artPath );
+        intent.putExtra( Keys.Extras.ROM_NAME, mSelectedItem.goodName );
+        intent.putExtra( Keys.Extras.ROM_DATE, mSelectedItem.date );
+        intent.putExtra( Keys.Extras.ROM_DEVELOPER, mSelectedItem.developer );
+        intent.putExtra( Keys.Extras.ROM_PUBLISHER, mSelectedItem.publisher );
+        intent.putExtra( Keys.Extras.ROM_GENRE, mSelectedItem.genre );
+        intent.putExtra( Keys.Extras.ROM_ESRB, mSelectedItem.esrb );
+        intent.putExtra( Keys.Extras.ROM_PLAYERS, mSelectedItem.players );
+        
+        startActivity( intent );
     }
     
     private void launchPlayMenuActivity( final String romPath )
@@ -703,12 +1100,24 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             ConfigFile config = new ConfigFile( mUserPrefs.romInfoCache_cfg );
             String romName = config.get( md5, "goodName" );
             String artPath = config.get( md5, "artPath" );
+            String romDate = config.get( md5, "date" );
+            String romDeveloper = config.get( md5, "developer" );
+            String romPublisher = config.get( md5, "publisher" );
+            String romGenre = config.get( md5, "genre" );
+            String romPlayers = config.get( md5, "players" );
+            String romESRB = config.get( md5, "esrb" );
             
             Intent intent = new Intent( GalleryActivity.this, PlayMenuActivity.class );
             intent.putExtra( Keys.Extras.ROM_PATH, romPath );
             intent.putExtra( Keys.Extras.ROM_MD5, md5 );
             intent.putExtra( Keys.Extras.ROM_NAME, romName );
             intent.putExtra( Keys.Extras.ART_PATH, artPath );
+            intent.putExtra( Keys.Extras.ROM_DATE, romDate );
+            intent.putExtra( Keys.Extras.ROM_DEVELOPER, romDeveloper );
+            intent.putExtra( Keys.Extras.ROM_PUBLISHER, romPublisher );
+            intent.putExtra( Keys.Extras.ROM_ESRB, romESRB );
+            intent.putExtra( Keys.Extras.ROM_GENRE, romGenre );
+            intent.putExtra( Keys.Extras.ROM_PLAYERS, romPlayers );
             startActivity( intent );
         }
     }
@@ -770,6 +1179,11 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         refreshGrid( config );
     }
     
+    private void refreshGrid()
+    {
+        refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
+    }
+    
     private void refreshGrid( ConfigFile config )
     {
         String query = mSearchQuery.toLowerCase();
@@ -794,22 +1208,33 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             if( !ConfigFile.SECTIONLESS_NAME.equals( md5 ) )
             {
                 String goodName = config.get( md5, "goodName" );
+                String date = config.get( md5, "date" );
+                String developer = config.get( md5, "developer" );
+                String publisher = config.get( md5, "publisher" );
+                String genre = config.get( md5, "genre" );
                 
                 // Strip the region and dump information
-                String baseName = null;
-                if ( showFullNames )
-                    baseName = goodName;
-                else
-                    baseName = goodName.split( " \\(" )[0].trim();
+                String baseName = goodName;
+                if ( !showFullNames )
+                    baseName = RomDatabase.baseNameForName( goodName );
                 
                 boolean matchesSearch = true;
                 if ( searches != null && searches.length > 0 )
                 {
                     // Make sure the ROM name contains every token in the query
                     String lowerName = baseName.toLowerCase();
+                    String lowerDev = developer.toLowerCase();
+                    String lowerPub = publisher.toLowerCase();
+                    String lowerGen = genre.toLowerCase();
+                    
                     for( String search : searches )
                     {
-                        if ( search.length() > 0 && !lowerName.contains( search ) )
+                        if ( search.length() > 0 &&
+                             !lowerName.contains( search ) &&
+                             !(lowerDev != null && lowerDev.contains( search ) ) &&
+                             !(lowerPub != null && lowerPub.contains( search ) ) &&
+                             !(lowerGen != null && lowerGen.contains( search ) ) &&
+                             !(date != null && date.contains( search ) ) )
                         {
                             matchesSearch = false;
                             break;
@@ -821,13 +1246,15 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 {
                     String romPath = config.get( md5, "romPath" );
                     String artPath = config.get( md5, "artPath" );
+                    String players = config.get( md5, "players" );
+                    String esrb = config.get( md5, "esrb" );
                     
                     String lastPlayedStr = config.get( md5, "lastPlayed" );
                     int lastPlayed = 0;
                     if ( lastPlayedStr != null )
                         lastPlayed = Integer.parseInt( lastPlayedStr );
                     
-                    GalleryItem item = new GalleryItem( this, md5, goodName, baseName, romPath, artPath, lastPlayed );
+                    GalleryItem item = new GalleryItem( this, md5, goodName, baseName, romPath, artPath, date, developer, publisher, genre, players, esrb, lastPlayed );
                     items.add( item );
                     if ( showRecentlyPlayed && currentTime - item.lastPlayed <= 60 * 60 * 24 * 7 ) // 7 days
                         recentItems.add( item );
@@ -836,8 +1263,33 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         }
         
         Collections.sort( items, new GalleryItem.NameComparator() );
+        String sort = mUserPrefs.getGallerySort();
+        if ( sort != null )
+        {
+            if ( mUserPrefs.SORT_BY_DATE.equals( sort ) )
+                Collections.sort( items, new GalleryItem.DateComparator() );
+            else if ( mUserPrefs.SORT_BY_DEVELOPER.equals( sort ) )
+                Collections.sort( items, new GalleryItem.DeveloperComparator() );
+            else if ( mUserPrefs.SORT_BY_PUBLISHER.equals( sort ) )
+                Collections.sort( items, new GalleryItem.PublisherComparator() );
+            else if ( mUserPrefs.SORT_BY_GENRE.equals( sort ) )
+                Collections.sort( items, new GalleryItem.GenreComparator() );
+            else if ( mUserPrefs.SORT_BY_ESRB.equals( sort ) )
+                Collections.sort( items, new GalleryItem.ESRBComparator() );
+            else if ( mUserPrefs.SORT_BY_PLAYERS.equals( sort ) )
+                Collections.sort( items, new GalleryItem.PlayersComparator() );
+            else if ( mUserPrefs.SORT_BY_LAST_PLAYED.equals( sort ) )
+                Collections.sort( items, new GalleryItem.LastPlayedComparator() );
+        }
+        if ( mUserPrefs.getGallerySortReverse() )
+            Collections.reverse( items );
+        
         if ( recentItems != null )
-            Collections.sort( recentItems, new GalleryItem.RecentlyPlayedComparator() );
+        {
+            Collections.sort( recentItems, new GalleryItem.LastPlayedComparator() );
+            if ( mUserPrefs.getGallerySortReverse() )
+                Collections.reverse( recentItems );
+        }
         
         List<GalleryItem> combinedItems = items;
         if ( showRecentlyPlayed && recentItems.size() > 0 )
@@ -949,6 +1401,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         mGameSidebar.setBackgroundDrawable( new DrawerDrawable( mUserPrefs.displaySidebarTransparency ) );
         
         // Refresh the gallery
-        refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
+        refreshGrid();
     }
 }

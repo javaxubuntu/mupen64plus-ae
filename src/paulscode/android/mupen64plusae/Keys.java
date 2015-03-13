@@ -45,6 +45,12 @@ public class Keys
         public static final String MENU_DISPLAY_MODE    = NAMESPACE + "MENU_DISPLAY_MODE";
         public static final String ART_PATH             = NAMESPACE + "ART_PATH";
         public static final String ROM_NAME             = NAMESPACE + "ROM_NAME";
+        public static final String ROM_DATE             = NAMESPACE + "ROM_DATE";
+        public static final String ROM_DEVELOPER        = NAMESPACE + "ROM_DEVELOPER";
+        public static final String ROM_PUBLISHER        = NAMESPACE + "ROM_PUBLISHER";
+        public static final String ROM_GENRE            = NAMESPACE + "ROM_GENRE";
+        public static final String ROM_ESRB             = NAMESPACE + "ROM_ESRB";
+        public static final String ROM_PLAYERS          = NAMESPACE + "ROM_PLAYERS";
         //@formatter:on
     }
     

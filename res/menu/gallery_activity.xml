@@ -13,8 +13,45 @@
     <item
         android:id="@+id/menuItem_refreshRoms"
         android:icon="@drawable/ic_refresh"
-        mupen64:showAsAction="always|collapseActionView"
+        mupen64:showAsAction="always"
         android:title="@string/menuItem_refreshRoms"
         tools:ignore="UnusedAttribute"/>
+
+    <item
+        android:id="@+id/menuItem_sort"
+        android:icon="@drawable/ic_sort_asc"
+        mupen64:showAsAction="always"
+        android:title="@string/sort" >
+
+        <menu>
+            <group android:checkableBehavior="single" >
+                <item
+                    android:id="@+id/menuItem_name"
+                    android:title="@string/name"/>
+                <item
+                    android:id="@+id/menuItem_lastPlayed"
+                    android:title="@string/lastPlayed"/>
+                <item
+                    android:id="@+id/menuItem_date"
+                    android:title="@string/date"/>
+                <item
+                    android:id="@+id/menuItem_players"
+                    android:title="@string/players"/>
+                <item
+                    android:id="@+id/menuItem_developer"
+                    android:title="@string/developer"/>
+                <item
+                    android:id="@+id/menuItem_publisher"
+                    android:title="@string/publisher"/>
+                <item
+                    android:id="@+id/menuItem_genre"
+                    android:title="@string/genre"/>
+                <item
+                    android:id="@+id/menuItem_esrb"
+                    android:title="@string/esrb"/>
+            </group>
+        </menu>
+
+    </item>
 
 </menu>
