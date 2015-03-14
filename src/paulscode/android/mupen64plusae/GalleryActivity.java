@@ -155,6 +155,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     private RomHeader mRomHeader = null;
     private boolean mShowCheats = false;
     private boolean mShowGamepads = false;
+    private String mSelectedCheat = null;
     
     @Override
     protected void onNewIntent( Intent intent )
@@ -267,6 +268,8 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                         mDrawerList.setVisibility( View.VISIBLE );
                         mGameSidebar.setVisibility( View.GONE );
                         mSelectedItem = null;
+                        mSelectedCheat = null;
+                        mShowCheats = false;
                     }
                 }
             }
@@ -658,12 +661,12 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     
     public void addProfiles( int icon, int title, int indentation, Profile profile, String builtinPath, String customPath, String defaultValue )
     {
-        // For now...
-        if ( profile == null ) return;
+        String profileName = getString( R.string.listItem_disabled );
+        if ( profile != null ) profileName = profile.name;
         
         mGameSidebar.addRow( icon,
             getString( title ),
-            profile.name,
+            profileName,
             new GameSidebar.Action()
             {
                 @Override
@@ -709,6 +712,11 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         setValue( selectedValue );*/
     }
     
+    private void newCheat( String folderPath )
+    {
+        
+    }
+    
     private void addCheats()
     {
         if ( mSelectedItem == null || mRomHeader == null ) return;
@@ -732,37 +740,137 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         cheats.addAll( CheatUtils.populate( crc, mupencheat_txt, true, this ) );
         CheatUtils.reset();
         
-        // Layout the menu, populating it with appropriate cheat options
+        // Fix the title if missing
         for( int i = 0; i < cheats.size(); i++ )
         {
-            // Get the short title of the cheat (shown in the menu)
-            String title;
             if( cheats.get( i ).name == null )
-                title = getString( R.string.cheats_defaultName, i );
-            else
-                title = cheats.get( i ).name;
-            String notes = cheats.get( i ).desc;
+                cheats.get( i ).name = getString( R.string.cheats_defaultName, i );
+        }
+        
+        Collections.sort( cheats );
+        
+        String[] folders = { "" };
+        boolean newAdded = false;
+        
+        for ( int cheatIndex = 0; cheatIndex < cheats.size(); cheatIndex++ )
+        {
+            final String name = cheats.get( cheatIndex ).name;
+            final String desc = cheats.get( cheatIndex ).desc;
             
-            /*String options = cheats.get( i ).option;
-            String[] optionStrings = null;
-            if( !TextUtils.isEmpty( options ) )
-                optionStrings = options.split( "\n" );
+            // Get the folder path for this cheat
+            final String[] newFolders = name.split( "\\\\" ); // why java why
+            final String folderPath = name.substring( 0, name.lastIndexOf( "\\" ) + 1 );
             
-            // Create the menu item associated with this cheat
-            final CheatPreference pref = new CheatPreference( this, title, notes, optionStrings );
-            pref.setKey( crc + " Cheat" + i );*/
+            // For each folder that differs from the current set, add a new folder
+            String genPath = "";
+            for ( int folderIndex = 0; folderIndex < newFolders.length - 1; folderIndex++ )
+            {
+                // Make sure the parent folders are expanded
+                if ( folderIndex != 0 && ( mSelectedCheat == null || !mSelectedCheat.startsWith( genPath ) ) )
+                    break;
+                genPath = genPath + newFolders[ folderIndex ] + "\\";
+                
+                if ( folderIndex >= folders.length - 1 || !newFolders[ folderIndex ].equals( folders[ folderIndex ] ) )
+                {
+                    // Count how many cheats this folder contains, and how many are enabled
+                    int folderSize = 0, enabledCount = 0;
+                    for ( int nextIndex = cheatIndex; nextIndex < cheats.size(); nextIndex++ )
+                    {
+                        String tempName = cheats.get( nextIndex ).name;
+                        String tempPath = tempName.substring( 0, tempName.lastIndexOf( "\\" ) + 1 );
+                        if ( TextUtils.isEmpty( tempPath ) || !tempPath.startsWith( folderPath ) )
+                            break;
+                        
+                        folderSize++;
+                        // if ( this cheat is enabled) enabledCount++;
+                    }
+                    
+                    // Determine whether this folder is selected
+                    int icon = R.drawable.ic_arrow_d;
+                    if ( mSelectedCheat != null && mSelectedCheat.startsWith( genPath ) )
+                        icon = R.drawable.ic_arrow_u;
+                    
+                    // Add this folder!
+                    final String finalPath = genPath;
+                    final int finalIndex = folderIndex;
+                    
+                    mGameSidebar.addRow( R.drawable.ic_folder, newFolders[ folderIndex ], enabledCount + "/" + folderSize, new GameSidebar.Action()
+                    {
+                        @Override
+                        public void onAction()
+                        {
+                            // Expand or collapse this folder
+                            if ( mSelectedCheat != null && mSelectedCheat.startsWith( finalPath ) )
+                            {
+                                // Collapse
+                                mSelectedCheat = finalPath.substring( 0, finalPath.length() - newFolders[ finalIndex ].length() - 1 );
+                            }
+                            else
+                            {
+                                // Expand
+                                mSelectedCheat = finalPath;
+                            }
+                            
+                            updateSidebar();
+                        }
+                    }, icon, folderIndex );
+                }
+            }
+            folders = newFolders;
             
-            /*int cheatIcon = R.drawable.ic_box;
-            if ( pref.isCheatEnabled() )
-                cheatIcon = R.drawable.ic_check;*/
+            // Only add this cheat if all of the folders up to this point are expanded
+            if ( folders.length == 1 || ( mSelectedCheat != null && mSelectedCheat.startsWith( folderPath ) ) )
+            {
+                // Determine whether this cheat is enabled
+                int icon = R.drawable.ic_box;
+                /*if ( this cheat is enabled )
+                {
+                    icon = R.drawable.ic_check;
+                    // Display the selected sub-option?
+                }*/
+                
+                mGameSidebar.addRow( icon, folders[ folders.length - 1 ], desc, new GameSidebar.Action()
+                {
+                    @Override
+                    public void onAction()
+                    {
+                        // Show the edit dialog for this cheat, where they can also enable/disable it or choose a sub-option
+                        
+                    }
+                }, 0x0, folders.length - 1 );
+            }
             
-            // Add the preference menu item to the cheats category
-            mGameSidebar.addRow( R.drawable.ic_box, title, notes, new GameSidebar.Action()
+            // If this was the last cheat in the selected folder, add the New cheat option
+            if ( !newAdded && ( cheatIndex == cheats.size() - 1 || ( mSelectedCheat != null && name.startsWith( mSelectedCheat ) && !cheats.get( cheatIndex + 1 ).name.startsWith( mSelectedCheat ) ) ) )
+            {
+                newAdded = true;
+                
+                // split returns the wrong value if it ends with the token to split on...?
+                int indentation = 0;
+                if ( mSelectedCheat != null )
+                    indentation = ( mSelectedCheat + " " ).split( "\\\\" ).length - 1;
+                
+                mGameSidebar.addRow( R.drawable.ic_plus, getString( R.string.newCheat_title ), getString( R.string.newCheat_summary ), new GameSidebar.Action()
+                {
+                    @Override
+                    public void onAction()
+                    {
+                        // Show the new cheat dialog
+                        newCheat( mSelectedCheat.substring( 0, mSelectedCheat.lastIndexOf( "\\" ) + 1 ) );
+                    }
+                }, 0x0, indentation );
+            }
+        }
+        
+        if ( !newAdded )
+        {
+            mGameSidebar.addRow( R.drawable.ic_plus, getString( R.string.newCheat_title ), getString( R.string.newCheat_summary ), new GameSidebar.Action()
             {
                 @Override
                 public void onAction()
                 {
-                    
+                    // Show the new cheat dialog
+                    newCheat( "" );
                 }
             });
         }
@@ -864,17 +972,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             // Add the cheats available for this game
             if ( mGamePrefs.getCheatsEnabled() )
                 addCheats();
-            
-            // New cheat
-            mGameSidebar.addRow( R.drawable.ic_plus, getString( R.string.newCheat_title ), getString( R.string.newCheat_summary ), new GameSidebar.Action()
-            {
-                @Override
-                public void onAction()
-                {
-                    // Show the new cheat dialog
-                    
-                }
-            }, 0x0, 0 );
         }
         
         // Add Emulation, Touchscreen, Controllers 1 through 4, and the Player Map
@@ -887,9 +984,23 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         int gamepadIcon = R.drawable.ic_arrow_d;
         if ( mShowGamepads ) gamepadIcon = R.drawable.ic_arrow_u;
         
+        int controllerCount = 0;
+        if ( mSelectedItem.players >= 1 && mGamePrefs.controllerProfile1 != null )
+            controllerCount++;
+        if ( mSelectedItem.players >= 2 && mGamePrefs.controllerProfile2 != null )
+            controllerCount++;
+        if ( mSelectedItem.players >= 3 && mGamePrefs.controllerProfile3 != null )
+            controllerCount++;
+        if ( mSelectedItem.players >= 4 && mGamePrefs.controllerProfile4 != null )
+            controllerCount++;
+        
+        String controllerSummary = controllerCount + "/" + mSelectedItem.players;
+        if ( controllerCount == 0 )
+            controllerSummary = getString( R.string.listItem_disabled );
+        
         mGameSidebar.addRow( R.drawable.ic_gamepad,
             getString( R.string.menuItem_controllerProfiles ),
-            "1 player configured",
+            controllerSummary,
             new GameSidebar.Action()
             {
                 @Override
@@ -903,16 +1014,29 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         if ( mShowGamepads )
         {
             if ( mSelectedItem.players >= 1 )
-                addProfiles( 0x0, R.string.controllerProfile1_title, 1, mGamePrefs.controllerProfile1, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
+                addProfiles( R.drawable.ic_gamepad, R.string.controllerProfile1_title, 1, mGamePrefs.controllerProfile1, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
             
             if ( mSelectedItem.players >= 2 )
-                addProfiles( 0x0, R.string.controllerProfile2_title, 1, mGamePrefs.controllerProfile2, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
+                addProfiles( R.drawable.ic_gamepad, R.string.controllerProfile2_title, 1, mGamePrefs.controllerProfile2, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
             
             if ( mSelectedItem.players >= 3 )
-                addProfiles( 0x0, R.string.controllerProfile3_title, 1, mGamePrefs.controllerProfile3, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
+                addProfiles( R.drawable.ic_gamepad, R.string.controllerProfile3_title, 1, mGamePrefs.controllerProfile3, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
             
             if ( mSelectedItem.players >= 4 )
-                addProfiles( 0x0, R.string.controllerProfile4_title, 1, mGamePrefs.controllerProfile4, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
+                addProfiles( R.drawable.ic_gamepad, R.string.controllerProfile4_title, 1, mGamePrefs.controllerProfile4, mAppData.controllerProfiles_cfg, mUserPrefs.controllerProfiles_cfg, "" );
+        }
+        
+        // Player map
+        if ( mGamePrefs.playerMap.isEnabled() )
+        {
+            mGameSidebar.addRow( R.drawable.ic_users, getString( R.string.playerMap_title ), getString( R.string.playerMap_summary ), new GameSidebar.Action()
+            {
+                @Override
+                public void onAction()
+                {
+                    
+                }
+            });
         }
         
         
@@ -955,7 +1079,27 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 @Override
                 public void onAction()
                 {
-                    
+                    String title = getString( R.string.confirm_title );
+                    String message = getString( R.string.actionResetGamePrefs_popupMessage );
+                    Prompt.promptConfirm( finalContext, title, message, new PromptConfirmListener()
+                    {
+                        @Override
+                        public void onConfirm()
+                        {
+                            /*// Reset the user preferences
+                            mPrefs.edit().clear().commit();
+                            PreferenceManager.setDefaultValues( PlayMenuActivity.this, R.xml.preferences_game, true );
+                            
+                            // Also reset any manual overrides the user may have made in the config file
+                            File configFile = new File( mGamePrefs.mupen64plus_cfg );
+                            if( configFile.exists() )
+                                configFile.delete();
+                            
+                            // Rebuild the menu system by restarting the activity
+                            finish();
+                            startActivity( getIntent() );*/
+                        }
+                    } );
                 }
             });
         
