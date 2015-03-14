@@ -21,6 +21,7 @@
 package paulscode.android.mupen64plusae;
 
 import paulscode.android.mupen64plusae.input.map.TouchMap;
+
 import android.util.FloatMath;
 import android.view.MotionEvent;
 import android.graphics.Point;
@@ -33,7 +34,6 @@ import java.util.List;
 
 public class DrawerLayout extends android.support.v4.widget.DrawerLayout
 {
-    private boolean mTouchscreenEnabled;
     private TouchMap mTouchMap;
     private List<MotionEvent> ignore = new ArrayList<MotionEvent>();
     private long mLastEdgeTime = 0;
@@ -42,13 +42,11 @@ public class DrawerLayout extends android.support.v4.widget.DrawerLayout
     {
         super( context, attrs );
         mTouchMap = null;
-        mTouchscreenEnabled = false;
     }
     
-    public void setData( boolean isTouchscreenEnabled, TouchMap touchMap )
+    public void setTouchMap( TouchMap touchMap )
     {
         mTouchMap = touchMap;
-        mTouchscreenEnabled = isTouchscreenEnabled;
     }
     
     @Override
@@ -77,24 +75,31 @@ public class DrawerLayout extends android.support.v4.widget.DrawerLayout
             if ( upAction ) ignore.remove( event );
             return false;
         }
-        else if ( actionCode == MotionEvent.ACTION_POINTER_DOWN || currentEventTime - mLastEdgeTime < 250 )
+        else if ( actionCode == MotionEvent.ACTION_POINTER_DOWN || ( actionCode == MotionEvent.ACTION_DOWN && currentEventTime - mLastEdgeTime < 250 ) )
         {
             // Ignore secondary inputs and inputs too close to the most recent one (0.25 seconds)
             ignore.add( event );
             return false;
         }
-        else if ( actionCode == MotionEvent.ACTION_DOWN && !isDrawerOpen( GravityCompat.START ) )
+        else if ( actionCode == MotionEvent.ACTION_DOWN && !isDrawerOpen( GravityCompat.START ) && mTouchMap != null )
         {
             for( int i = 0; i < event.getPointerCount(); i++ )
             {
                 int xLocation = (int) event.getX( i );
                 int yLocation = (int) event.getY( i );
                 
-                // See if it touches one of the buttons
-                if ( mTouchMap.getButtonPress( xLocation, yLocation ) != mTouchMap.UNMAPPED )
+                // See if it touches the d-pad or the C buttons,
+                // as they are small enough to interfere with left edge swipes
+                // (fortunately placing the C buttons on the left is unusual)
+                int buttonIndex = mTouchMap.getButtonPress( xLocation, yLocation );
+                if ( buttonIndex != mTouchMap.UNMAPPED )
                 {
-                    ignore.add( event );
-                    return false;
+                    if ( "dpad".equals( TouchMap.ASSET_NAMES.get( buttonIndex ) ) ||
+                         "groupC".equals( TouchMap.ASSET_NAMES.get( buttonIndex ) ) )
+                    {
+                        ignore.add( event );
+                        return false;
+                    }
                 }
                 
                 // See if it touches the analog stick
