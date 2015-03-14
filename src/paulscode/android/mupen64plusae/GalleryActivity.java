@@ -757,7 +757,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 cheatIcon = R.drawable.ic_check;*/
             
             // Add the preference menu item to the cheats category
-            mGameSidebar.addRow( cheatIcon, title, notes, new GameSidebar.Action()
+            mGameSidebar.addRow( R.drawable.ic_box, title, notes, new GameSidebar.Action()
             {
                 @Override
                 public void onAction()
