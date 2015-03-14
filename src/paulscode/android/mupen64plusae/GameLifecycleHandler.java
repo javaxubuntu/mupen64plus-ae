@@ -26,6 +26,7 @@ import java.lang.Runnable;
 
 import org.mupen64plusae.v3.alpha.R;
 
+import paulscode.android.mupen64plusae.DrawerLayout;
 import paulscode.android.mupen64plusae.hack.MogaHack;
 import paulscode.android.mupen64plusae.input.AbstractController;
 import paulscode.android.mupen64plusae.input.PeripheralController;
@@ -67,7 +68,6 @@ import android.view.Window;
 import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 
-import android.support.v4.widget.DrawerLayout;
 import android.support.v4.view.GravityCompat;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.inputmethod.InputMethodManager;
@@ -738,6 +738,8 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                     inputSource, mOverlay, vibrator, mUserPrefs.touchscreenAutoHold,
                     mUserPrefs.isTouchscreenFeedbackEnabled, mGamePrefs.touchscreenAutoHoldables );
             mControllers.add( touchscreenController );
+            
+            mDrawerLayout.setData( true, mTouchscreenMap );
             
             // If using touchpad & touchscreen together...
             if( touchpadController != null )
