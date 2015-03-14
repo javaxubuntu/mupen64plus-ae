@@ -160,7 +160,7 @@ public class GameSidebar extends ScrollView
         });
     }
     
-    public void addInformation( String name, String date, String developer, String publisher, String genre, String players, String esrb, int lastPlayed )
+    public void addInformation( String name, String filePath, String date, String developer, String publisher, String genre, String players, String esrb, int lastPlayed )
     {
         // Add a section explaining the region and dump information for the ROM
         // http://forums.emulator-zone.com/archive/index.php/t-5533.html
@@ -354,34 +354,49 @@ public class GameSidebar extends ScrollView
             index = endIndex + 1;
         }
         
-        boolean addHeading = ( !TextUtils.isEmpty( developer ) || !TextUtils.isEmpty( publisher ) || !TextUtils.isEmpty( date ) || !TextUtils.isEmpty( genre ) || !TextUtils.isEmpty( players ) || !TextUtils.isEmpty( esrb ) || lastPlayed > 0 );
+        String dumper = null;
+        if ( filePath != null )
+        {
+            if ( filePath.endsWith( ".v64" ) || filePath.endsWith( ".V64" ) )
+                dumper = "Doctor V64";
+            else if ( filePath.endsWith( ".n64" ) )
+                dumper = "Little-endian"; // No name for this one?
+            else if ( filePath.endsWith( ".N64" ) )
+                dumper = "GCCexe makerom";
+            else if ( filePath.endsWith( ".z64" ) || filePath.endsWith( ".Z64" ) )
+                dumper = "Mr. Backup Z64";
+        }
+        
+        boolean addHeading = ( !TextUtils.isEmpty( dumper ) || !TextUtils.isEmpty( developer ) || !TextUtils.isEmpty( publisher ) || !TextUtils.isEmpty( date ) || !TextUtils.isEmpty( genre ) || !TextUtils.isEmpty( players ) || !TextUtils.isEmpty( esrb ) || lastPlayed > 0 );
         
         if ( prefs.size() > 0 || addHeading )
             this.addHeading( mContext.getString( R.string.categoryGameInfo_title ) );
         
         //if ( lastPlayed > 0 )
-        //    this.addRow( 0, "Last played", "Dunno", null );
+        //    this.addRow( 0, mContext.getString( R.string.lastPlayed ), "Dunno", null );
         if ( !TextUtils.isEmpty( developer ) )
-            this.addRow( 0, "Developer", developer, null );
+            this.addRow( 0, mContext.getString( R.string.developer ), developer, null );
         if ( !TextUtils.isEmpty( publisher ) )
-            this.addRow( 0, "Publisher", publisher, null );
+            this.addRow( 0, mContext.getString( R.string.publisher ), publisher, null );
         if ( !TextUtils.isEmpty( genre ) )
-            this.addRow( 0, "Genre", genre, null );
+            this.addRow( 0, mContext.getString( R.string.genre ), genre, null );
         if ( !TextUtils.isEmpty( date ) )
-            this.addRow( 0, "Date", date, null );
+            this.addRow( 0, mContext.getString( R.string.date ), date, null );
         if ( !TextUtils.isEmpty( players ) )
         {
             if ( "1".equals( players ) )
-                this.addRow( 0, "Players", players, null );
+                this.addRow( 0, mContext.getString( R.string.players ), players, null );
             else
-                this.addRow( 0, "Players", "1 – " + players, null );
+                this.addRow( 0, mContext.getString( R.string.players ), "1 – " + players, null );
         }
         if ( !TextUtils.isEmpty( esrb ) )
-            this.addRow( 0, "ESRB Rating", esrb, null );
+            this.addRow( 0, mContext.getString( R.string.esrb ), esrb, null );
         
         for ( Preference pref : prefs )
             this.addRow( 0, pref.getTitle().toString(), pref.getSummary().toString(), null );
         
+        if ( !TextUtils.isEmpty( dumper ) )
+            this.addRow( 0, mContext.getString( R.string.infoDumper_title ), dumper, null );
     }
     
     public abstract static class Action
