@@ -418,11 +418,10 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     @Override
     public void onSaveInstanceState( Bundle savedInstanceState )
     {
-        savedInstanceState.putString( STATE_QUERY, mSearchView.getQuery().toString() );
+        if ( mSearchView != null )
+            savedInstanceState.putString( STATE_QUERY, mSearchView.getQuery().toString() );
         if ( mSelectedItem != null )
             savedInstanceState.putString( STATE_SIDEBAR, mSelectedItem.md5 );
-        else
-            savedInstanceState.putString( STATE_SIDEBAR, null );
         
         super.onSaveInstanceState(savedInstanceState);
     }
