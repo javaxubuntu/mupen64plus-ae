@@ -755,7 +755,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         for ( int cheatIndex = 0; cheatIndex < cheats.size(); cheatIndex++ )
         {
             final String name = cheats.get( cheatIndex ).name;
-            final String desc = cheats.get( cheatIndex ).desc;
             
             // Get the folder path for this cheat
             final String[] newFolders = name.split( "\\\\" ); // why java why
@@ -813,7 +812,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                             
                             updateSidebar();
                         }
-                    }, icon, folderIndex );
+                    }, icon, folderIndex + 1 );
                 }
             }
             folders = newFolders;
@@ -829,7 +828,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     // Display the selected sub-option?
                 }*/
                 
-                mGameSidebar.addRow( icon, folders[ folders.length - 1 ], desc, new GameSidebar.Action()
+                mGameSidebar.addRow( icon, folders[ folders.length - 1 ], null, new GameSidebar.Action()
                 {
                     @Override
                     public void onAction()
@@ -837,7 +836,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                         // Show the edit dialog for this cheat, where they can also enable/disable it or choose a sub-option
                         
                     }
-                }, 0x0, folders.length - 1 );
+                }, 0x0, folders.length );
             }
             
             // If this was the last cheat in the selected folder, add the New cheat option
@@ -846,11 +845,11 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 newAdded = true;
                 
                 // split returns the wrong value if it ends with the token to split on...?
-                int indentation = 0;
+                int indentation = 1;
                 if ( mSelectedCheat != null )
-                    indentation = ( mSelectedCheat + " " ).split( "\\\\" ).length - 1;
+                    indentation = ( mSelectedCheat + " " ).split( "\\\\" ).length;
                 
-                mGameSidebar.addRow( R.drawable.ic_plus, getString( R.string.newCheat_title ), getString( R.string.newCheat_summary ), new GameSidebar.Action()
+                mGameSidebar.addRow( R.drawable.ic_plus, getString( R.string.newCheat_title ), null, new GameSidebar.Action()
                 {
                     @Override
                     public void onAction()
@@ -864,7 +863,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         
         if ( !newAdded )
         {
-            mGameSidebar.addRow( R.drawable.ic_plus, getString( R.string.newCheat_title ), getString( R.string.newCheat_summary ), new GameSidebar.Action()
+            mGameSidebar.addRow( R.drawable.ic_plus, getString( R.string.newCheat_title ), null, new GameSidebar.Action()
             {
                 @Override
                 public void onAction()
@@ -872,7 +871,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     // Show the new cheat dialog
                     newCheat( "" );
                 }
-            });
+            }, 0x0, 1 );
         }
     }
     
@@ -967,7 +966,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     mGamePrefs.putCheatsEnabled( !mGamePrefs.getCheatsEnabled() );
                     updateSidebar();
                 }
-            }, 0x0, 0 );
+            }, 0x0, 1 );
             
             // Add the cheats available for this game
             if ( mGamePrefs.getCheatsEnabled() )
