@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Date;
+import java.net.URLEncoder;
 
 import org.mupen64plusae.v3.alpha.R;
 
@@ -812,7 +813,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 }
             });
         
-        /*mGameSidebar.addRow( R.drawable.ic_settings,
+        mGameSidebar.addRow( R.drawable.ic_settings,
             "Settings",
             null,
             new GameSidebar.Action()
@@ -823,7 +824,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     PlayMenuActivity.action = null;
                     launchPlayMenuActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5 );
                 }
-            });*/
+            });
         
         // Cheats
         int cheatsSummary = mGamePrefs.getCheatsEnabled()
@@ -943,7 +944,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 @Override
                 public void onAction()
                 {
-                    
+                    Utility.launchUri( finalContext, finalContext.getString( R.string.uri_bugReportGame, URLEncoder.encode( finalItem.goodName ) ) );
                 }
             });
         
