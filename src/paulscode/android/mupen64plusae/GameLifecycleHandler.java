@@ -23,6 +23,7 @@ package paulscode.android.mupen64plusae;
 import java.util.ArrayList;
 import java.io.File;
 import java.lang.Runnable;
+import java.net.URLEncoder;
 
 import org.mupen64plusae.v3.alpha.R;
 
@@ -594,7 +595,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                 @Override
                 public void onAction()
                 {
-                    
+                    Utility.launchUri( mActivity, mActivity.getString( R.string.uri_bugReportGame, URLEncoder.encode( mRomName ) ) );
                 }
             });
         
