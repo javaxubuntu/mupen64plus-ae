@@ -740,7 +740,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
                     mUserPrefs.isTouchscreenFeedbackEnabled, mGamePrefs.touchscreenAutoHoldables );
             mControllers.add( touchscreenController );
             
-            mDrawerLayout.setData( true, mTouchscreenMap );
+            mDrawerLayout.setTouchMap( mTouchscreenMap );
             
             // If using touchpad & touchscreen together...
             if( touchpadController != null )
