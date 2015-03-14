@@ -180,6 +180,7 @@
     <!-- ROM country code and dump information -->
     <string name="categoryGameInfo_title">Information</string>
     <string name="infoVersion_title">Version</string>
+    <string name="infoDumper_title">Dumper</string>
     <string name="infoVerified_title">Verified good dump</string>
     <string name="infoVerified_summary">Game has been verified as a good dump</string>
     <string name="infoBad_title">Bad dump</string>

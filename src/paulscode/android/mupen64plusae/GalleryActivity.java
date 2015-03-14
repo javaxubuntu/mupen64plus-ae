@@ -960,7 +960,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             });
         
         // Lastly, add the Information section
-        mGameSidebar.addInformation( item.goodName, item.date, item.developer, item.publisher, item.genre, item.players + "", item.esrb, item.lastPlayed );
+        mGameSidebar.addInformation( item.goodName, item.romPath, item.date, item.developer, item.publisher, item.genre, item.players + "", item.esrb, item.lastPlayed );
     }
     
     public void onGalleryItemClick( GalleryItem item, View parentView )

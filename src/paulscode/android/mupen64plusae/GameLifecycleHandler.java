@@ -599,7 +599,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
             });
         
         // Lastly, add the game information
-        mGameSidebar.addInformation( mRomName, mRomDate, mRomDeveloper, mRomPublisher, mRomGenre, mRomPlayers, mRomESRB, 0 );
+        mGameSidebar.addInformation( mRomName, mRomPath, mRomDate, mRomDeveloper, mRomPublisher, mRomGenre, mRomPlayers, mRomESRB, 0 );
     }
     
     public void onStart()
