@@ -39,12 +39,18 @@ import android.util.Log;
 
 public class CheatUtils
 {
-    public static class Cheat
+    public static class Cheat implements Comparable<Cheat>
     {
         public String name;
         public String desc;
         public String code;
         public String option;
+        
+        @Override
+        public int compareTo( Cheat another )
+        {
+            return this.name.compareToIgnoreCase( another.name );
+        }
     }
     
     public static int numberOfSystemCheats = 0;
