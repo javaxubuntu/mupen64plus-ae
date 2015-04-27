@@ -98,6 +98,7 @@ public class NativeSDL extends CoreInterface
                         break;
                     
                     case 2:
+                    case 3:
                         renderableType = EGL_OPENGL_ES2_BIT;
                         break;
                     
