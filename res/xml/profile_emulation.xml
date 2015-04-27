@@ -127,5 +127,9 @@
             android:summary="@string/selectedValue"
             android:title="@string/glide64Frameskip_title" />
     </PreferenceCategory>
+    <PreferenceCategory
+        android:key="categoryGliden64"
+        android:title="@string/categoryGliden64_title" >
+    </PreferenceCategory>
 
 </PreferenceScreen>
