@@ -7,13 +7,13 @@
     android:versionName="3.a.0 (debug)"
     tools:ignore="UnusedAttribute" >
 
-    <uses-feature android:glEsVersion="0x00020000" />
+    <uses-feature android:glEsVersion="0x00030001" />
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
     <uses-sdk
-        android:minSdkVersion="7"
+        android:minSdkVersion="21"
         android:targetSdkVersion="21" />
 
     <uses-permission android:name="android.permission.INTERNET" />
