@@ -264,7 +264,7 @@ public class AppData
                 libraryExists( "mupen64plus-rsp-hle" )          &&
                 libraryExists( "mupen64plus-ui-console" )       &&
                 libraryExists( "mupen64plus-video-glide64mk2" ) &&
-// TODO         libraryExists( "mupen64plus-video-gliden64" )   &&
+                libraryExists( "mupen64plus-video-gliden64" )   &&
                 libraryExists( "mupen64plus-video-gln64" )      &&
                 libraryExists( "mupen64plus-video-rice" )       &&
                 libraryExists( "SDL2" )                         &&
