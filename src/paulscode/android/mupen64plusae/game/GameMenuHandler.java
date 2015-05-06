@@ -18,17 +18,19 @@
  * 
  * Authors: littleguy77, Paul Lamb
  */
-package paulscode.android.mupen64plusae;
+package paulscode.android.mupen64plusae.game;
 
 import org.mupen64plusae.v3.alpha.R;
 
-import paulscode.android.mupen64plusae.CoreInterface.OnStateCallbackListener;
+import paulscode.android.mupen64plusae.ActivityHelper;
+import paulscode.android.mupen64plusae.jni.CoreInterface;
+import paulscode.android.mupen64plusae.jni.CoreInterface.OnStateCallbackListener;
 import paulscode.android.mupen64plusae.jni.NativeConstants;
 import paulscode.android.mupen64plusae.jni.NativeExports;
 import paulscode.android.mupen64plusae.jni.NativeInput;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.GamePrefs;
-import paulscode.android.mupen64plusae.persistent.UserPrefs;
+import paulscode.android.mupen64plusae.persistent.GlobalPrefs;
 import paulscode.android.mupen64plusae.util.Notifier;
 import paulscode.android.mupen64plusae.util.RomHeader;
 import android.annotation.TargetApi;
@@ -47,7 +49,7 @@ public class GameMenuHandler implements OnStateCallbackListener
     private final String mRomMd5;
     private final RomHeader mRomHeader;
     
-    private UserPrefs mUserPrefs;
+    private GlobalPrefs mGlobalPrefs;
     private GamePrefs mGamePrefs;
     
     public GameMenuHandler( Activity activity )
@@ -58,8 +60,8 @@ public class GameMenuHandler implements OnStateCallbackListener
         Bundle extras = mActivity.getIntent().getExtras();
         if( extras == null )
             throw new Error( "ROM path and MD5 must be passed via the extras bundle when starting GameActivity" );
-        String romPath = extras.getString( Keys.Extras.ROM_PATH );
-        mRomMd5 = extras.getString( Keys.Extras.ROM_MD5 );
+        String romPath = extras.getString( ActivityHelper.Keys.ROM_PATH );
+        mRomMd5 = extras.getString( ActivityHelper.Keys.ROM_MD5 );
         if( TextUtils.isEmpty( romPath ) || TextUtils.isEmpty( mRomMd5 ) )
             throw new Error( "ROM path and MD5 must be passed via the extras bundle when starting GameActivity" );
         mRomHeader = new RomHeader( romPath );
@@ -86,14 +88,14 @@ public class GameMenuHandler implements OnStateCallbackListener
         mActivity.getMenuInflater().inflate( R.menu.game_activity, menu );
         
         // Get the app data and user prefs after the activity has been created
-        mUserPrefs = new UserPrefs( mActivity );
+        mGlobalPrefs = new GlobalPrefs( mActivity );
         mGamePrefs = new GamePrefs( mActivity, mRomMd5, mRomHeader );
         
         // Initialize the pak menus (reverse order since some get hidden)
-        initializePakMenu( menu, 4, mGamePrefs.isPlugged4, mUserPrefs.getPakType( 4 ) );
-        initializePakMenu( menu, 3, mGamePrefs.isPlugged3, mUserPrefs.getPakType( 3 ) );
-        initializePakMenu( menu, 2, mGamePrefs.isPlugged2, mUserPrefs.getPakType( 2 ) );
-        initializePakMenu( menu, 1, mGamePrefs.isPlugged1, mUserPrefs.getPakType( 1 ) );
+        initializePakMenu( menu, 4, mGamePrefs.isPlugged4, mGlobalPrefs.getPakType( 4 ) );
+        initializePakMenu( menu, 3, mGamePrefs.isPlugged3, mGlobalPrefs.getPakType( 3 ) );
+        initializePakMenu( menu, 2, mGamePrefs.isPlugged2, mGlobalPrefs.getPakType( 2 ) );
+        initializePakMenu( menu, 1, mGamePrefs.isPlugged1, mGlobalPrefs.getPakType( 1 ) );
     }
     
     public void onPrepareOptionsMenu( Menu menu )
@@ -289,7 +291,7 @@ public class GameMenuHandler implements OnStateCallbackListener
     public void setPak( int player, int pakType, MenuItem item )
     {
         // Persist the value
-        mUserPrefs.putPakType( player, pakType );
+        mGlobalPrefs.putPakType( player, pakType );
         
         // Set the pak in the core
         NativeInput.setConfig( player - 1, true, pakType );

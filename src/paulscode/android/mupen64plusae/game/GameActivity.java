@@ -18,24 +18,18 @@
  * 
  * Authors: littleguy77
  */
-package paulscode.android.mupen64plusae;
+package paulscode.android.mupen64plusae.game;
 
-import android.annotation.TargetApi;
-import android.app.NativeActivity;
+import paulscode.android.mupen64plusae.jni.CoreInterface;
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-@TargetApi( 9 )
-public class GameActivityXperiaPlay extends NativeActivity
+public class GameActivity extends Activity
 {
     private GameLifecycleHandler mLifecycleHandler;
     private GameMenuHandler mMenuHandler;
-    
-    public GameActivityXperiaPlay()
-    {
-        System.loadLibrary( "xperia-touchpad" );
-    }
     
     @Override
     public boolean onCreateOptionsMenu( Menu menu )

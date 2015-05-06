@@ -18,17 +18,15 @@
  * 
  * Authors: littleguy77
  */
-package paulscode.android.mupen64plusae;
+package paulscode.android.mupen64plusae.persistent;
 
 import org.mupen64plusae.v3.alpha.R;
 
+import paulscode.android.mupen64plusae.ActivityHelper;
 import paulscode.android.mupen64plusae.dialog.Prompt;
 import paulscode.android.mupen64plusae.dialog.Prompt.PromptConfirmListener;
-import paulscode.android.mupen64plusae.persistent.AppData;
-import paulscode.android.mupen64plusae.persistent.UserPrefs;
 import paulscode.android.mupen64plusae.preference.PrefUtil;
 import android.annotation.TargetApi;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -37,7 +35,7 @@ import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 
-public class SettingsGlobalActivity extends PreferenceActivity implements OnPreferenceClickListener,
+public class GlobalPrefsActivity extends PreferenceActivity implements OnPreferenceClickListener,
         OnSharedPreferenceChangeListener
 {
     // These constants must match the keys used in res/xml/preferences.xml
@@ -71,7 +69,7 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
     
     // App data and user preferences
     private AppData mAppData = null;
-    private UserPrefs mUserPrefs = null;
+    private GlobalPrefs mGlobalPrefs = null;
     private SharedPreferences mPrefs = null;
     
     @SuppressWarnings( "deprecation" )
@@ -82,15 +80,15 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
         
         // Get app data and user preferences
         mAppData = new AppData( this );
-        mUserPrefs = new UserPrefs( this );
-        mUserPrefs.enforceLocale( this );
+        mGlobalPrefs = new GlobalPrefs( this );
+        mGlobalPrefs.enforceLocale( this );
         mPrefs = PreferenceManager.getDefaultSharedPreferences( this );
         
         // Load user preference menu structure from XML and update view
         addPreferencesFromResource( R.xml.preferences_global );
         
         // Refresh the preference data wrapper
-        mUserPrefs = new UserPrefs( this );
+        mGlobalPrefs = new GlobalPrefs( this );
         
         // Handle certain menu items that require extra processing or aren't actually preferences
         PrefUtil.setOnPreferenceClickListener( this, ACTION_RELOAD_ASSETS, this );
@@ -102,7 +100,7 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
         if( !AppData.IS_KITKAT )
             PrefUtil.removePreference( this, CATEGORY_DISPLAY, DISPLAY_IMMERSIVE_MODE );
         
-        if( !mUserPrefs.isActionBarAvailable )
+        if( !mGlobalPrefs.isActionBarAvailable )
             PrefUtil.removePreference( this, CATEGORY_DISPLAY, DISPLAY_ACTION_BAR_TRANSPARENCY );
         
         if( !mAppData.hardwareInfo.isXperiaPlay )
@@ -112,7 +110,7 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
         Bundle extras = getIntent().getExtras();
         if( extras != null )
         {
-            int mode = extras.getInt( Keys.Extras.MENU_DISPLAY_MODE, 0 );
+            int mode = extras.getInt( ActivityHelper.Keys.MENU_DISPLAY_MODE, 0 );
             if( mode == 1 )
             {
                 // Remove distractions if this was launched from TouchscreenProfileActivity
@@ -155,8 +153,7 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
         {
             // Sometimes one preference change affects the hierarchy or layout of the views. In this
             // case it's easier just to restart the activity than try to figure out what to fix.
-            finish();
-            startActivity( getIntent() );
+            ActivityHelper.restartActivity( this );
         }
         else
         {
@@ -169,15 +166,15 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
     private void refreshViews()
     {
         // Refresh the preferences object
-        mUserPrefs = new UserPrefs( this );
+        mGlobalPrefs = new GlobalPrefs( this );
         
         // Enable polygon offset pref if flicker reduction is custom
-        PrefUtil.enablePreference( this, VIDEO_POLYGON_OFFSET, mUserPrefs.videoHardwareType == VIDEO_HARDWARE_TYPE_CUSTOM );
+        PrefUtil.enablePreference( this, VIDEO_POLYGON_OFFSET, mGlobalPrefs.videoHardwareType == VIDEO_HARDWARE_TYPE_CUSTOM );
         
         // Enable audio prefs if audio is enabled
-        PrefUtil.enablePreference( this, AUDIO_BUFFER_SIZE, mUserPrefs.audioPlugin.enabled );
-        PrefUtil.enablePreference( this, AUDIO_SYNCHRONIZE, mUserPrefs.audioPlugin.enabled );
-        PrefUtil.enablePreference( this, AUDIO_SWAP_CHANNELS, mUserPrefs.audioPlugin.enabled );
+        PrefUtil.enablePreference( this, AUDIO_BUFFER_SIZE, mGlobalPrefs.audioPlugin.enabled );
+        PrefUtil.enablePreference( this, AUDIO_SYNCHRONIZE, mGlobalPrefs.audioPlugin.enabled );
+        PrefUtil.enablePreference( this, AUDIO_SWAP_CHANNELS, mGlobalPrefs.audioPlugin.enabled );
     }
     
     @Override
@@ -203,7 +200,7 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
     private void actionReloadAssets()
     {
         mAppData.putAssetVersion( 0 );
-        startActivity( new Intent( this, SplashActivity.class ) );
+        ActivityHelper.startSplashActivity( this );
         finish();
     }
     
@@ -217,13 +214,12 @@ public class SettingsGlobalActivity extends PreferenceActivity implements OnPref
             public void onConfirm()
             {
                 // Reset the user preferences
-                mPrefs.unregisterOnSharedPreferenceChangeListener( SettingsGlobalActivity.this );
+                mPrefs.unregisterOnSharedPreferenceChangeListener( GlobalPrefsActivity.this );
                 mPrefs.edit().clear().commit();
-                PreferenceManager.setDefaultValues( SettingsGlobalActivity.this, R.xml.preferences_global, true );
+                PreferenceManager.setDefaultValues( GlobalPrefsActivity.this, R.xml.preferences_global, true );
                 
                 // Rebuild the menu system by restarting the activity
-                finish();
-                startActivity( getIntent() );
+                ActivityHelper.restartActivity( GlobalPrefsActivity.this );
             }
         } );
     }

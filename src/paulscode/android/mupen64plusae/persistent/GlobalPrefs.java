@@ -29,6 +29,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.WordUtils;
 import org.mupen64plusae.v3.alpha.R;
 
+import paulscode.android.mupen64plusae.ActivityHelper;
 import paulscode.android.mupen64plusae.jni.NativeConstants;
 import paulscode.android.mupen64plusae.persistent.AppData.HardwareInfo;
 import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
@@ -82,7 +83,7 @@ import android.view.WindowManager;
  * rather than at the point of use. This could improve application performance if the value is used
  * often, such as the frame refresh loop of a game.
  */
-public class UserPrefs
+public class GlobalPrefs
 {
     /** The parent directory containing all user-writable data files. */
     public final String userDataDir;
@@ -260,7 +261,7 @@ public class UserPrefs
     @SuppressWarnings( "deprecation" )
     @SuppressLint( "InlinedApi" )
     @TargetApi( 17 )
-    public UserPrefs( Context context )
+    public GlobalPrefs( Context context )
     {
         AppData appData = new AppData( context );
         mPreferences = PreferenceManager.getDefaultSharedPreferences( context );
@@ -544,8 +545,7 @@ public class UserPrefs
                 if( which >= 0 && which != currentIndex )
                 {
                     mPreferences.edit().putString( KEY_LOCALE_OVERRIDE, mLocaleCodes[which] ).commit();
-                    activity.finish();
-                    activity.startActivity( activity.getIntent() );
+                    ActivityHelper.restartActivity( activity );
                 }
             }
         } );

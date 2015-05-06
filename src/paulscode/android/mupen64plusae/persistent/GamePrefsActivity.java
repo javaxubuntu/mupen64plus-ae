@@ -18,14 +18,14 @@
  * 
  * Authors: Paul Lamb
  */
-package paulscode.android.mupen64plusae;
+package paulscode.android.mupen64plusae.persistent;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
 
 import org.mupen64plusae.v3.alpha.R;
 
+import paulscode.android.mupen64plusae.ActivityHelper;
 import paulscode.android.mupen64plusae.cheat.CheatEditorActivity;
 import paulscode.android.mupen64plusae.cheat.CheatFile;
 import paulscode.android.mupen64plusae.cheat.CheatFile.CheatSection;
@@ -35,18 +35,12 @@ import paulscode.android.mupen64plusae.cheat.CheatUtils.Cheat;
 import paulscode.android.mupen64plusae.dialog.Prompt;
 import paulscode.android.mupen64plusae.dialog.Prompt.PromptConfirmListener;
 import paulscode.android.mupen64plusae.hack.MogaHack;
-import paulscode.android.mupen64plusae.persistent.AppData;
-import paulscode.android.mupen64plusae.persistent.ConfigFile;
-import paulscode.android.mupen64plusae.persistent.GamePrefs;
-import paulscode.android.mupen64plusae.persistent.UserPrefs;
 import paulscode.android.mupen64plusae.preference.PlayerMapPreference;
 import paulscode.android.mupen64plusae.preference.PrefUtil;
 import paulscode.android.mupen64plusae.preference.ProfilePreference;
-import paulscode.android.mupen64plusae.util.Notifier;
 import paulscode.android.mupen64plusae.util.RomDatabase;
 import paulscode.android.mupen64plusae.util.RomDatabase.RomDetail;
 import paulscode.android.mupen64plusae.util.RomHeader;
-import paulscode.android.mupen64plusae.util.Utility;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -54,7 +48,6 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceCategory;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
@@ -62,21 +55,17 @@ import android.util.Log;
 
 import com.bda.controller.Controller;
 
-public class PlayMenuActivity extends PreferenceActivity implements OnPreferenceClickListener,
+public class GamePrefsActivity extends PreferenceActivity implements OnPreferenceClickListener,
         OnSharedPreferenceChangeListener
 {
     // These constants must match the keys used in res/xml/preferences_play.xml
+    private static final String SCREEN_ROOT = "screenRoot";
     private static final String SCREEN_CHEATS = "screenCheats";
-    
-    private static final String CATEGORY_GAME_SETTINGS = "categoryGameSettings";
     private static final String CATEGORY_CHEATS = "categoryCheats";
     
-    public static final String ACTION_RESUME = "actionResume";
-    public static final String ACTION_RESTART = "actionRestart";
     private static final String ACTION_CHEAT_EDITOR = "actionCheatEditor";
     private static final String ACTION_WIKI = "actionWiki";
     private static final String ACTION_RESET_GAME_PREFS = "actionResetGamePrefs";
-    private static final String ACTION_EXIT = "actionExit";
     
     private static final String EMULATION_PROFILE = "emulationProfile";
     private static final String TOUCHSCREEN_PROFILE = "touchscreenProfile";
@@ -89,7 +78,7 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
     
     // App data and user preferences
     private AppData mAppData = null;
-    private UserPrefs mUserPrefs = null;
+    private GlobalPrefs mGlobalPrefs = null;
     private GamePrefs mGamePrefs = null;
     private SharedPreferences mPrefs = null;
     
@@ -126,8 +115,8 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         Bundle extras = getIntent().getExtras();
         if( extras == null )
             throw new Error( "ROM path and MD5 must be passed via the extras bundle" );
-        mRomPath = extras.getString( Keys.Extras.ROM_PATH );
-        mRomMd5 = extras.getString( Keys.Extras.ROM_MD5 );
+        mRomPath = extras.getString( ActivityHelper.Keys.ROM_PATH );
+        mRomMd5 = extras.getString( ActivityHelper.Keys.ROM_MD5 );
         if( TextUtils.isEmpty( mRomPath ) || TextUtils.isEmpty( mRomMd5 ) )
             throw new Error( "ROM path and MD5 must be passed via the extras bundle" );
         
@@ -139,9 +128,9 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         // Get app data and user preferences
         mAppData = new AppData( this );
         mRomHeader = new RomHeader( mRomPath );
-        mUserPrefs = new UserPrefs( this );
+        mGlobalPrefs = new GlobalPrefs( this );
         mGamePrefs = new GamePrefs( this, mRomMd5, mRomHeader );
-        mUserPrefs.enforceLocale( this );
+        mGlobalPrefs.enforceLocale( this );
         mPrefs = getSharedPreferences( mGamePrefs.sharedPrefsName, MODE_PRIVATE );
         
         // Get the detailed info about the ROM
@@ -171,7 +160,7 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         // Remove wiki menu item if not applicable
         if( TextUtils.isEmpty( mRomDetail.wikiUrl ) )
         {
-            PrefUtil.removePreference( this, CATEGORY_GAME_SETTINGS, ACTION_WIKI );
+            PrefUtil.removePreference( this, SCREEN_ROOT, ACTION_WIKI );
         }
         
         // Setup controller profiles settings based on ROM's number of players
@@ -181,18 +170,18 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
             findPreference( CONTROLLER_PROFILE1 ).setTitle( R.string.controllerProfile_title );
             
             // Remove unneeded preference items
-            PrefUtil.removePreference( this, CATEGORY_GAME_SETTINGS, CONTROLLER_PROFILE2 );
-            PrefUtil.removePreference( this, CATEGORY_GAME_SETTINGS, CONTROLLER_PROFILE3 );
-            PrefUtil.removePreference( this, CATEGORY_GAME_SETTINGS, CONTROLLER_PROFILE4 );
-            PrefUtil.removePreference( this, CATEGORY_GAME_SETTINGS, PLAYER_MAP );
+            PrefUtil.removePreference( this, SCREEN_ROOT, CONTROLLER_PROFILE2 );
+            PrefUtil.removePreference( this, SCREEN_ROOT, CONTROLLER_PROFILE3 );
+            PrefUtil.removePreference( this, SCREEN_ROOT, CONTROLLER_PROFILE4 );
+            PrefUtil.removePreference( this, SCREEN_ROOT, PLAYER_MAP );
         }
         else
         {
             // Remove unneeded preference items
             if( mRomDetail.players < 4 )
-                PrefUtil.removePreference( this, CATEGORY_GAME_SETTINGS, CONTROLLER_PROFILE4 );
+                PrefUtil.removePreference( this, SCREEN_ROOT, CONTROLLER_PROFILE4 );
             if( mRomDetail.players < 3 )
-                PrefUtil.removePreference( this, CATEGORY_GAME_SETTINGS, CONTROLLER_PROFILE3 );
+                PrefUtil.removePreference( this, SCREEN_ROOT, CONTROLLER_PROFILE3 );
             
             // Configure the player map preference
             PlayerMapPreference playerPref = (PlayerMapPreference) findPreference( PLAYER_MAP );
@@ -210,22 +199,6 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         mPrefs.registerOnSharedPreferenceChangeListener( this );
         mMogaController.onResume();
         refreshViews();
-        
-        if( ACTION_RESUME.equals( action ) )
-        {
-            action = ACTION_EXIT;
-            launchGame( false );
-        }
-        else if( ACTION_RESTART.equals( action ) )
-        {
-            action = ACTION_EXIT;
-            launchGame( true );
-        }
-        else if( ACTION_EXIT.equals( action ) )
-        {
-            action = null;
-            finish();
-        }
     }
     
     @Override
@@ -265,25 +238,25 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         mPrefs.unregisterOnSharedPreferenceChangeListener( this );
         
         // Refresh the preferences objects
-        mUserPrefs = new UserPrefs( this );
+        mGlobalPrefs = new GlobalPrefs( this );
         mGamePrefs = new GamePrefs( this, mRomMd5, mRomHeader );
         
         // Populate the profile preferences
         mEmulationProfile.populateProfiles( mAppData.emulationProfiles_cfg,
-                mUserPrefs.emulationProfiles_cfg, mUserPrefs.getEmulationProfileDefault() );
+                mGlobalPrefs.emulationProfiles_cfg, mGlobalPrefs.getEmulationProfileDefault() );
         mTouchscreenProfile.populateProfiles( mAppData.touchscreenProfiles_cfg,
-                mUserPrefs.touchscreenProfiles_cfg, mUserPrefs.getTouchscreenProfileDefault() );
+                mGlobalPrefs.touchscreenProfiles_cfg, mGlobalPrefs.getTouchscreenProfileDefault() );
         mControllerProfile1.populateProfiles( mAppData.controllerProfiles_cfg,
-                mUserPrefs.controllerProfiles_cfg, mUserPrefs.getControllerProfileDefault() );
+                mGlobalPrefs.controllerProfiles_cfg, mGlobalPrefs.getControllerProfileDefault() );
         mControllerProfile2.populateProfiles( mAppData.controllerProfiles_cfg,
-                mUserPrefs.controllerProfiles_cfg, "" );
+                mGlobalPrefs.controllerProfiles_cfg, "" );
         mControllerProfile3.populateProfiles( mAppData.controllerProfiles_cfg,
-                mUserPrefs.controllerProfiles_cfg, "" );
+                mGlobalPrefs.controllerProfiles_cfg, "" );
         mControllerProfile4.populateProfiles( mAppData.controllerProfiles_cfg,
-                mUserPrefs.controllerProfiles_cfg, "" );
+                mGlobalPrefs.controllerProfiles_cfg, "" );
         
         // Refresh the preferences objects in case populate* changed a value
-        mUserPrefs = new UserPrefs( this );
+        mGlobalPrefs = new GlobalPrefs( this );
         mGamePrefs = new GamePrefs( this, mRomMd5, mRomHeader );
         
         // Set cheats screen summary text
@@ -334,12 +307,12 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         if( key.equals( ACTION_CHEAT_EDITOR ) )
         {
             Intent intent = new Intent( this, CheatEditorActivity.class );
-            intent.putExtra( Keys.Extras.ROM_PATH, mRomPath );
+            intent.putExtra( ActivityHelper.Keys.ROM_PATH, mRomPath );
             startActivityForResult( intent, 111 );
         }
         else if( key.equals( ACTION_WIKI ) )
         {
-            Utility.launchUri( this, mRomDetail.wikiUrl );
+            ActivityHelper.launchUri( this, mRomDetail.wikiUrl );
         }
         else if( key.equals( ACTION_RESET_GAME_PREFS ) )
         {
@@ -352,7 +325,7 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
     {
         mCategoryCheats.removeAll();
         
-        Log.v( "PlayMenuActivity", "building from CRC = " + crc );
+        Log.v( "GamePrefsActivity", "building from CRC = " + crc );
         if( crc == null )
             return;
         
@@ -361,7 +334,7 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         CheatSection cheatSection = mupencheat_txt.match( "^" + crc.replace( ' ', '-' ) + ".*" );
         if( cheatSection == null )
         {
-            Log.w( "PlayMenuActivity", "No cheat section found for '" + crc + "'" );
+            Log.w( "GamePrefsActivity", "No cheat section found for '" + crc + "'" );
             return;
         }
         ArrayList<Cheat> cheats = new ArrayList<Cheat>();
@@ -400,88 +373,6 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
         }
     }
     
-    private void launchGame( boolean isRestarting )
-    {
-        // Popup the multi-player dialog if necessary and abort if any players are unassigned
-        if( mRomDetail.players > 1 && mGamePrefs.playerMap.isEnabled()
-                && mUserPrefs.getPlayerMapReminder() )
-        {
-            mGamePrefs.playerMap.removeUnavailableMappings();
-            boolean needs1 = mGamePrefs.isControllerEnabled1 && !mGamePrefs.playerMap.isMapped( 1 );
-            boolean needs2 = mGamePrefs.isControllerEnabled2 && !mGamePrefs.playerMap.isMapped( 2 );
-            boolean needs3 = mGamePrefs.isControllerEnabled3 && !mGamePrefs.playerMap.isMapped( 3 )
-                    && mRomDetail.players > 2;
-            boolean needs4 = mGamePrefs.isControllerEnabled4 && !mGamePrefs.playerMap.isMapped( 4 )
-                    && mRomDetail.players > 3;
-            
-            if( needs1 || needs2 || needs3 || needs4 )
-            {
-                @SuppressWarnings( "deprecation" )
-                PlayerMapPreference pref = (PlayerMapPreference) findPreference( "playerMap" );
-                pref.show();
-                return;
-            }
-        }
-        
-        // Make sure that the storage is accessible
-        if( !mAppData.isSdCardAccessible() )
-        {
-            Log.e( "CheatMenuHandler", "SD Card not accessible in method onPreferenceClick" );
-            Notifier.showToast( this, R.string.toast_sdInaccessible );
-            return;
-        }
-        
-        // Notify user that the game activity is starting
-        Notifier.showToast( this, R.string.toast_launchingEmulator );
-        
-        // Update the ConfigSection with the new value for lastPlayed
-        String lastPlayed = Integer.toString( (int) ( new Date().getTime() / 1000 ) );
-        ConfigFile config = new ConfigFile( mUserPrefs.romInfoCache_cfg );
-        if( config != null )
-        {
-            config.put( mRomMd5, "lastPlayed", lastPlayed );
-            config.save();
-        }
-        
-        // Launch the appropriate game activity
-        Intent intent = mUserPrefs.isTouchpadEnabled ? new Intent( this,
-                GameActivityXperiaPlay.class ) : new Intent( this, GameActivity.class );
-        
-        // Pass the startup info via the intent
-        intent.putExtra( Keys.Extras.ROM_PATH, mRomPath );
-        intent.putExtra( Keys.Extras.ROM_MD5, mRomMd5 );
-        intent.putExtra( Keys.Extras.CHEAT_ARGS, getCheatArgs() );
-        intent.putExtra( Keys.Extras.DO_RESTART, isRestarting );
-        
-        startActivity( intent );
-    }
-    
-    @SuppressWarnings( "deprecation" )
-    private String getCheatArgs()
-    {
-        String cheatArgs = null;
-        
-        PreferenceCategory cheatsCategory = (PreferenceCategory) findPreference( CATEGORY_CHEATS );
-        if( cheatsCategory != null )
-        {
-            for( int i = 0; i < cheatsCategory.getPreferenceCount(); i++ )
-            {
-                CheatPreference pref = (CheatPreference) cheatsCategory.getPreference( i );
-                if( pref.isCheatEnabled() )
-                {
-                    if( cheatArgs == null )
-                        cheatArgs = ""; // First time through
-                    else
-                        cheatArgs += ",";
-                    
-                    cheatArgs += pref.getCheatCodeString( i );
-                }
-            }
-        }
-        
-        return cheatArgs;
-    }
-    
     private void actionResetGamePrefs()
     {
         String title = getString( R.string.confirm_title );
@@ -492,9 +383,9 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
             public void onConfirm()
             {
                 // Reset the user preferences
-                mPrefs.unregisterOnSharedPreferenceChangeListener( PlayMenuActivity.this );
+                mPrefs.unregisterOnSharedPreferenceChangeListener( GamePrefsActivity.this );
                 mPrefs.edit().clear().commit();
-                PreferenceManager.setDefaultValues( PlayMenuActivity.this, R.xml.preferences_game, true );
+                PreferenceManager.setDefaultValues( GamePrefsActivity.this, R.xml.preferences_game, true );
                 
                 // Also reset any manual overrides the user may have made in the config file
                 File configFile = new File( mGamePrefs.mupen64plus_cfg );
@@ -502,8 +393,7 @@ public class PlayMenuActivity extends PreferenceActivity implements OnPreference
                     configFile.delete();
                 
                 // Rebuild the menu system by restarting the activity
-                finish();
-                startActivity( getIntent() );
+                ActivityHelper.restartActivity( GamePrefsActivity.this );
             }
         } );
     }

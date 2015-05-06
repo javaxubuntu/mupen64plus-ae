@@ -34,21 +34,19 @@ import paulscode.android.mupen64plusae.dialog.Prompt;
 import paulscode.android.mupen64plusae.dialog.Prompt.PromptConfirmListener;
 import paulscode.android.mupen64plusae.dialog.ScanRomsDialog;
 import paulscode.android.mupen64plusae.dialog.ScanRomsDialog.ScanRomsDialogListener;
-import paulscode.android.mupen64plusae.input.DiagnosticActivity;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
-import paulscode.android.mupen64plusae.persistent.UserPrefs;
-import paulscode.android.mupen64plusae.profile.ManageControllerProfilesActivity;
-import paulscode.android.mupen64plusae.profile.ManageEmulationProfilesActivity;
-import paulscode.android.mupen64plusae.profile.ManageTouchscreenProfilesActivity;
+import paulscode.android.mupen64plusae.persistent.GamePrefs;
+import paulscode.android.mupen64plusae.persistent.GamePrefsActivity;
+import paulscode.android.mupen64plusae.persistent.GlobalPrefs;
 import paulscode.android.mupen64plusae.task.CacheRomInfoTask;
 import paulscode.android.mupen64plusae.task.CacheRomInfoTask.CacheRomInfoListener;
 import paulscode.android.mupen64plusae.task.ComputeMd5Task;
 import paulscode.android.mupen64plusae.task.ComputeMd5Task.ComputeMd5Listener;
 import paulscode.android.mupen64plusae.util.DeviceUtil;
 import paulscode.android.mupen64plusae.util.Notifier;
-import paulscode.android.mupen64plusae.util.Utility;
+import paulscode.android.mupen64plusae.util.RomHeader;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog.Builder;
@@ -71,6 +69,7 @@ import android.support.v7.widget.SearchView.OnQueryTextListener;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -86,7 +85,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     
     // App data and user preferences
     private AppData mAppData = null;
-    private UserPrefs mUserPrefs = null;
+    private GlobalPrefs mGlobalPrefs = null;
     
     // Widgets
     private RecyclerView mGridView;
@@ -120,7 +119,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         // If the activity is already running and is launched again (e.g. from a file manager app),
         // the existing instance will be reused rather than a new one created. This behavior is
         // specified in the manifest (launchMode = singleTask). In that situation, any activities
-        // above this on the stack (e.g. GameActivity, PlayMenuActivity) will be destroyed
+        // above this on the stack (e.g. GameActivity, GamePrefsActivity) will be destroyed
         // gracefully and onNewIntent() will be called on this instance. onCreate() will NOT be
         // called again on this instance. Currently, the only info that may be passed via the intent
         // is the selected game path, so we only need to refresh that aspect of the UI. This will
@@ -134,13 +133,12 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {
-        super.setTheme( android.support.v7.appcompat.R.style.Theme_AppCompat_NoActionBar );
         super.onCreate( savedInstanceState );
         
         // Get app data and user preferences
         mAppData = new AppData( this );
-        mUserPrefs = new UserPrefs( this );
-        mUserPrefs.enforceLocale( this );
+        mGlobalPrefs = new GlobalPrefs( this );
+        mGlobalPrefs.enforceLocale( this );
         
         int lastVer = mAppData.getLastAppVersionCode();
         int currVer = mAppData.appVersionCode;
@@ -159,7 +157,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         Bundle extras = getIntent().getExtras();
         if( extras != null )
         {
-            String givenRomPath = extras.getString( Keys.Extras.ROM_PATH );
+            String givenRomPath = extras.getString( ActivityHelper.Keys.ROM_PATH );
             if( !TextUtils.isEmpty( givenRomPath ) )
                 launchPlayMenuActivity( givenRomPath );
         }
@@ -167,7 +165,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         // Lay out the content
         setContentView( R.layout.gallery_activity );
         mGridView = (RecyclerView) findViewById( R.id.gridview );
-        refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
+        refreshGrid( new ConfigFile( mGlobalPrefs.romInfoCache_cfg ) );
         
         // Update the grid layout
         galleryMaxWidth = (int) getResources().getDimension( R.dimen.galleryImageWidth );
@@ -352,7 +350,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             public boolean onMenuItemActionCollapse( MenuItem item )
             {
                 mSearchQuery = "";
-                refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
+                refreshGrid( new ConfigFile( mGlobalPrefs.romInfoCache_cfg ) );
                 return true;
             }
             
@@ -375,7 +373,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             public boolean onQueryTextChange( String query )
             {
                 mSearchQuery = query;
-                refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
+                refreshGrid( new ConfigFile( mGlobalPrefs.romInfoCache_cfg ) );
                 return false;
             }
         } );
@@ -402,28 +400,28 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 mDrawerLayout.closeDrawer( GravityCompat.START );
                 return true;
             case R.id.menuItem_settings:
-                startActivity( new Intent( this, SettingsGlobalActivity.class ) );
+                ActivityHelper.startGlobalPrefsActivity( this );
                 return true;
             case R.id.menuItem_emulationProfiles:
-                startActivity( new Intent( this, ManageEmulationProfilesActivity.class ) );
+                ActivityHelper.startManageEmulationProfilesActivity( this );
                 return true;
             case R.id.menuItem_touchscreenProfiles:
-                startActivity( new Intent( this, ManageTouchscreenProfilesActivity.class ) );
+                ActivityHelper.startManageTouchscreenProfilesActivity( this );
                 return true;
             case R.id.menuItem_controllerProfiles:
-                startActivity( new Intent( this, ManageControllerProfilesActivity.class ) );
+                ActivityHelper.startManageControllerProfilesActivity( this );
                 return true;
             case R.id.menuItem_faq:
                 popupFaq();
                 return true;
             case R.id.menuItem_helpForum:
-                Utility.launchUri( GalleryActivity.this, R.string.uri_forum );
+                ActivityHelper.launchUri( GalleryActivity.this, R.string.uri_forum );
                 return true;
             case R.id.menuItem_controllerDiagnostics:
-                startActivity( new Intent( this, DiagnosticActivity.class ) );
+                ActivityHelper.startDiagnosticActivity( this );
                 return true;
             case R.id.menuItem_reportBug:
-                Utility.launchUri( GalleryActivity.this, R.string.uri_bugReport );
+                ActivityHelper.launchUri( GalleryActivity.this, R.string.uri_bugReport );
                 return true;
             case R.id.menuItem_appVersion:
                 popupAppVersion();
@@ -439,10 +437,10 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 popupHardwareInfo();
                 return true;
             case R.id.menuItem_credits:
-                Utility.launchUri( GalleryActivity.this, R.string.uri_credits );
+                ActivityHelper.launchUri( GalleryActivity.this, R.string.uri_credits );
                 return true;
             case R.id.menuItem_localeOverride:
-                mUserPrefs.changeLocale( this );
+                mGlobalPrefs.changeLocale( this );
                 return true;
             default:
                 return super.onOptionsItemSelected( item );
@@ -467,8 +465,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     @Override
                     public void onAction()
                     {
-                        PlayMenuActivity.action = PlayMenuActivity.ACTION_RESUME;
-                        launchPlayMenuActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5 );
+                        launchGameActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5, false );
                     }
                 } );
         
@@ -486,8 +483,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                                     @Override
                                     public void onConfirm()
                                     {
-                                        PlayMenuActivity.action = PlayMenuActivity.ACTION_RESTART;
-                                        launchPlayMenuActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5 );
+                                        launchGameActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5, true );
                                     }
                                 } );
                     }
@@ -499,8 +495,8 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     @Override
                     public void onAction()
                     {
-                        PlayMenuActivity.action = null;
-                        launchPlayMenuActivity( finalItem.romFile.getAbsolutePath(), finalItem.md5 );
+                        GamePrefsActivity.action = null;
+                        ActivityHelper.startGamePrefsActivity( GalleryActivity.this, finalItem.romFile.getAbsolutePath(), finalItem.md5 );
                     }
                 } );
     }
@@ -570,18 +566,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     @Override
     public void onComputeMd5Finished( File file, String md5 )
     {
-        launchPlayMenuActivity( file.getAbsolutePath(), md5 );
-    }
-    
-    private void launchPlayMenuActivity( String romPath, String md5 )
-    {
-        if( !TextUtils.isEmpty( romPath ) && !TextUtils.isEmpty( md5 ) )
-        {
-            Intent intent = new Intent( GalleryActivity.this, PlayMenuActivity.class );
-            intent.putExtra( Keys.Extras.ROM_PATH, romPath );
-            intent.putExtra( Keys.Extras.ROM_MD5, md5 );
-            startActivity( intent );
-        }
+        ActivityHelper.startGamePrefsActivity( this, file.getAbsolutePath(), md5 );
     }
     
     private void promptSearchPath( File startDir )
@@ -590,17 +575,17 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         if( startDir == null || !startDir.exists() )
             startDir = new File( Environment.getExternalStorageDirectory().getAbsolutePath() );
         
-        ScanRomsDialog dialog = new ScanRomsDialog( this, startDir, mUserPrefs.getSearchZips(),
-                mUserPrefs.getDownloadArt(), mUserPrefs.getClearGallery(),
+        ScanRomsDialog dialog = new ScanRomsDialog( this, startDir, mGlobalPrefs.getSearchZips(),
+                mGlobalPrefs.getDownloadArt(), mGlobalPrefs.getClearGallery(),
                 new ScanRomsDialogListener()
                 {
                     @Override
                     public void onDialogClosed( File file, int which, boolean searchZips,
                             boolean downloadArt, boolean clearGallery )
                     {
-                        mUserPrefs.putSearchZips( searchZips );
-                        mUserPrefs.putDownloadArt( downloadArt );
-                        mUserPrefs.putClearGallery( clearGallery );
+                        mGlobalPrefs.putSearchZips( searchZips );
+                        mGlobalPrefs.putDownloadArt( downloadArt );
+                        mGlobalPrefs.putClearGallery( clearGallery );
                         if( which == DialogInterface.BUTTON_POSITIVE )
                         {
                             // Search this folder for ROMs
@@ -625,9 +610,9 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     {
         // Asynchronously search for ROMs
         mCacheRomInfoTask = new CacheRomInfoTask( this, startDir, mAppData.mupen64plus_ini,
-                mUserPrefs.romInfoCache_cfg, mUserPrefs.coverArtDir, mUserPrefs.unzippedRomsDir,
-                mUserPrefs.getSearchZips(), mUserPrefs.getDownloadArt(),
-                mUserPrefs.getClearGallery(), this );
+                mGlobalPrefs.romInfoCache_cfg, mGlobalPrefs.coverArtDir, mGlobalPrefs.unzippedRomsDir,
+                mGlobalPrefs.getSearchZips(), mGlobalPrefs.getDownloadArt(),
+                mGlobalPrefs.getClearGallery(), this );
         mCacheRomInfoTask.execute();
     }
     
@@ -653,7 +638,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         List<GalleryItem> items = new ArrayList<GalleryItem>();
         List<GalleryItem> recentItems = null;
         int currentTime = 0;
-        if( mUserPrefs.isRecentShown )
+        if( mGlobalPrefs.isRecentShown )
         {
             recentItems = new ArrayList<GalleryItem>();
             currentTime = (int) ( new Date().getTime() / 1000 );
@@ -665,7 +650,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             {
                 ConfigSection section = config.get( md5 );
                 String goodName;
-                if( mUserPrefs.isFullNameShown || !section.keySet().contains( "baseName" ) )
+                if( mGlobalPrefs.isFullNameShown || !section.keySet().contains( "baseName" ) )
                     goodName = section.get( "goodName" );
                 else
                     goodName = section.get( "baseName" );
@@ -697,7 +682,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     GalleryItem item = new GalleryItem( this, md5, goodName, romPath, artPath,
                             lastPlayed );
                     items.add( item );
-                    if( mUserPrefs.isRecentShown
+                    if( mGlobalPrefs.isRecentShown
                             && currentTime - item.lastPlayed <= 60 * 60 * 24 * 7 ) // 7 days
                         recentItems.add( item );
                 }
@@ -708,7 +693,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             Collections.sort( recentItems, new GalleryItem.RecentlyPlayedComparator() );
         
         List<GalleryItem> combinedItems = items;
-        if( mUserPrefs.isRecentShown && recentItems.size() > 0 )
+        if( mGlobalPrefs.isRecentShown && recentItems.size() > 0 )
         {
             combinedItems = new ArrayList<GalleryItem>();
             
@@ -778,14 +763,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
             @Override
             public void onClick( DialogInterface dialog, int which )
             {
-                // See http://android-developers.blogspot.com/2012/02/share-with-intents.html
-                Intent intent = new Intent( android.content.Intent.ACTION_SEND );
-                intent.setType( "text/plain" );
-                intent.addFlags( Intent.FLAG_ACTIVITY_NEW_DOCUMENT );
-                intent.putExtra( Intent.EXTRA_TEXT, message );
-                // intent.putExtra( Intent.EXTRA_SUBJECT, subject );
-                // intent.putExtra( Intent.EXTRA_EMAIL, new String[] { emailTo } );
-                startActivity( Intent.createChooser( intent, getText( R.string.actionShare_title ) ) );
+                ActivityHelper.launchPlainText( GalleryActivity.this, message, getText( R.string.actionShare_title ) );
             }
         };
         
@@ -812,15 +790,67 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
     private void refreshViews()
     {
         // Refresh the preferences object in case another activity changed the data
-        mUserPrefs = new UserPrefs( this );
+        mGlobalPrefs = new GlobalPrefs( this );
         
         // Set the sidebar opacity on the two sidebars
         mDrawerList.setBackgroundDrawable( new DrawerDrawable(
-                mUserPrefs.displayActionBarTransparency ) );
+                mGlobalPrefs.displayActionBarTransparency ) );
         mGameSidebar.setBackgroundDrawable( new DrawerDrawable(
-                mUserPrefs.displayActionBarTransparency ) );
+                mGlobalPrefs.displayActionBarTransparency ) );
         
         // Refresh the gallery
-        refreshGrid( new ConfigFile( mUserPrefs.romInfoCache_cfg ) );
+        refreshGrid( new ConfigFile( mGlobalPrefs.romInfoCache_cfg ) );
+    }
+    
+    public void launchGameActivity( String romPath, String romMd5, boolean isRestarting )
+    {
+        RomHeader romHeader = new RomHeader( romPath );
+        GamePrefs gamePrefs = new GamePrefs( this, romMd5, romHeader );
+// TODO FIXME
+//        // Popup the multi-player dialog if necessary and abort if any players are unassigned
+//        RomDatabase romDatabase = new RomDatabase( mAppData.mupen64plus_ini );
+//        RomDetail romDetail = romDatabase.lookupByMd5WithFallback( romMd5, new File( romPath ) );
+//        if( romDetail.players > 1 && gamePrefs.playerMap.isEnabled()
+//                && mGlobalPrefs.getPlayerMapReminder() )
+//        {
+//            gamePrefs.playerMap.removeUnavailableMappings();
+//            boolean needs1 = gamePrefs.isControllerEnabled1 && !gamePrefs.playerMap.isMapped( 1 );
+//            boolean needs2 = gamePrefs.isControllerEnabled2 && !gamePrefs.playerMap.isMapped( 2 );
+//            boolean needs3 = gamePrefs.isControllerEnabled3 && !gamePrefs.playerMap.isMapped( 3 )
+//                    && romDetail.players > 2;
+//            boolean needs4 = gamePrefs.isControllerEnabled4 && !gamePrefs.playerMap.isMapped( 4 )
+//                    && romDetail.players > 3;
+//            
+//            if( needs1 || needs2 || needs3 || needs4 )
+//            {
+//                @SuppressWarnings( "deprecation" )
+//                PlayerMapPreference pref = (PlayerMapPreference) findPreference( "playerMap" );
+//                pref.show();
+//                return;
+//            }
+//        }
+        
+        // Make sure that the storage is accessible
+        if( !mAppData.isSdCardAccessible() )
+        {
+            Log.e( "GalleryActivity", "SD Card not accessible" );
+            Notifier.showToast( this, R.string.toast_sdInaccessible );
+            return;
+        }
+        
+        // Notify user that the game activity is starting
+        Notifier.showToast( this, R.string.toast_launchingEmulator );
+        
+        // Update the ConfigSection with the new value for lastPlayed
+        String lastPlayed = Integer.toString( (int) ( new Date().getTime() / 1000 ) );
+        ConfigFile config = new ConfigFile( mGlobalPrefs.romInfoCache_cfg );
+        if( config != null )
+        {
+            config.put( romMd5, "lastPlayed", lastPlayed );
+            config.save();
+        }
+        
+        // Launch the game activity
+        ActivityHelper.startGameActivity( this, romPath, romMd5, gamePrefs.getCheatArgs(), isRestarting, mGlobalPrefs.isTouchpadEnabled );
     }
 }
