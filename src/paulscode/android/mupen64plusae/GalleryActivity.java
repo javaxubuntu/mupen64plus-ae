@@ -30,6 +30,7 @@ import java.util.Locale;
 import org.mupen64plusae.v3.alpha.R;
 
 import paulscode.android.mupen64plusae.dialog.ChangeLog;
+import paulscode.android.mupen64plusae.dialog.Popups;
 import paulscode.android.mupen64plusae.dialog.Prompt;
 import paulscode.android.mupen64plusae.dialog.Prompt.PromptConfirmListener;
 import paulscode.android.mupen64plusae.dialog.ScanRomsDialog;
@@ -38,16 +39,13 @@ import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.ConfigFile.ConfigSection;
 import paulscode.android.mupen64plusae.persistent.GamePrefs;
-import paulscode.android.mupen64plusae.persistent.GamePrefsActivity;
 import paulscode.android.mupen64plusae.persistent.GlobalPrefs;
 import paulscode.android.mupen64plusae.task.CacheRomInfoTask;
 import paulscode.android.mupen64plusae.task.CacheRomInfoTask.CacheRomInfoListener;
 import paulscode.android.mupen64plusae.task.ComputeMd5Task;
 import paulscode.android.mupen64plusae.task.ComputeMd5Task.ComputeMd5Listener;
-import paulscode.android.mupen64plusae.util.DeviceUtil;
 import paulscode.android.mupen64plusae.util.Notifier;
 import paulscode.android.mupen64plusae.util.RomHeader;
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
@@ -60,8 +58,8 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.MenuItemCompat.OnActionExpandListener;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -76,8 +74,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
-public class GalleryActivity extends ActionBarActivity implements ComputeMd5Listener,
-        CacheRomInfoListener
+public class GalleryActivity extends AppCompatActivity implements CacheRomInfoListener
 {
     // Saved instance states
     public static final String STATE_QUERY = "query";
@@ -145,7 +142,7 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         if( lastVer != currVer )
         {
             // First run after install/update, greet user with changelog, then help dialog
-            popupFaq();
+            Popups.showFaq( this );
             ChangeLog log = new ChangeLog( getAssets() );
             if( log.show( this, lastVer + 1, currVer ) )
             {
@@ -159,7 +156,19 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         {
             String givenRomPath = extras.getString( ActivityHelper.Keys.ROM_PATH );
             if( !TextUtils.isEmpty( givenRomPath ) )
-                launchPlayMenuActivity( givenRomPath );
+            {
+                // Asynchronously compute MD5 and launch game when finished
+                Notifier.showToast( this, String.format( getString( R.string.toast_loadingGameInfo ) ) );
+                ComputeMd5Task task = new ComputeMd5Task( new File( givenRomPath ), new ComputeMd5Listener()
+                {
+                    @Override
+                    public void onComputeMd5Finished( File file, String md5 )
+                    {
+                        ActivityHelper.startGamePrefsActivity( GalleryActivity.this, file.getAbsolutePath(), md5 );
+                    }
+                } );
+                task.execute();
+            }
         }
         
         // Lay out the content
@@ -412,29 +421,28 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                 ActivityHelper.startManageControllerProfilesActivity( this );
                 return true;
             case R.id.menuItem_faq:
-                popupFaq();
+                Popups.showFaq( this );
                 return true;
             case R.id.menuItem_helpForum:
-                ActivityHelper.launchUri( GalleryActivity.this, R.string.uri_forum );
+                ActivityHelper.launchUri( this, R.string.uri_forum );
                 return true;
             case R.id.menuItem_controllerDiagnostics:
                 ActivityHelper.startDiagnosticActivity( this );
                 return true;
             case R.id.menuItem_reportBug:
-                ActivityHelper.launchUri( GalleryActivity.this, R.string.uri_bugReport );
+                ActivityHelper.launchUri( this, R.string.uri_bugReport );
                 return true;
             case R.id.menuItem_appVersion:
-                popupAppVersion();
+                Popups.showAppVersion( this );
                 return true;
             case R.id.menuItem_changelog:
-                new ChangeLog( getAssets() )
-                        .show( GalleryActivity.this, 0, mAppData.appVersionCode );
+                new ChangeLog( getAssets() ).show( this, 0, mAppData.appVersionCode );
                 return true;
             case R.id.menuItem_logcat:
-                popupLogcat();
+                Popups.showLogcat( this );
                 return true;
             case R.id.menuItem_hardwareInfo:
-                popupHardwareInfo();
+                Popups.showHardwareInfo( this );
                 return true;
             case R.id.menuItem_credits:
                 ActivityHelper.launchUri( GalleryActivity.this, R.string.uri_credits );
@@ -495,7 +503,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
                     @Override
                     public void onAction()
                     {
-                        GamePrefsActivity.action = null;
                         ActivityHelper.startGamePrefsActivity( GalleryActivity.this, finalItem.romFile.getAbsolutePath(), finalItem.md5 );
                     }
                 } );
@@ -521,13 +528,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         
         // Open the navigation drawer
         mDrawerLayout.openDrawer( GravityCompat.START );
-    }
-    
-    private void launchPlayMenuActivity( final String romPath )
-    {
-        // Asynchronously compute MD5 and launch play menu when finished
-        Notifier.showToast( this, String.format( getString( R.string.toast_loadingGameInfo ) ) );
-        new ComputeMd5Task( new File( romPath ), this ).execute();
     }
     
     @Override
@@ -561,12 +561,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         {
             super.onBackPressed();
         }
-    }
-    
-    @Override
-    public void onComputeMd5Finished( File file, String md5 )
-    {
-        ActivityHelper.startGamePrefsActivity( this, file.getAbsolutePath(), md5 );
     }
     
     private void promptSearchPath( File startDir )
@@ -728,55 +722,6 @@ public class GalleryActivity extends ActionBarActivity implements ComputeMd5List
         } );
         
         mGridView.setLayoutManager( layoutManager );
-    }
-    
-    private void popupFaq()
-    {
-        CharSequence title = getText( R.string.menuItem_faq );
-        CharSequence message = getText( R.string.popup_faq );
-        new Builder( this ).setTitle( title ).setMessage( message ).create().show();
-    }
-    
-    private void popupLogcat()
-    {
-        String title = getString( R.string.menuItem_logcat );
-        String message = DeviceUtil.getLogCat();
-        popupShareableText( title, message );
-    }
-    
-    private void popupHardwareInfo()
-    {
-        String title = getString( R.string.menuItem_hardwareInfo );
-        String axisInfo = DeviceUtil.getAxisInfo();
-        String peripheralInfo = DeviceUtil.getPeripheralInfo();
-        String cpuInfo = DeviceUtil.getCpuInfo();
-        String message = axisInfo + peripheralInfo + cpuInfo;
-        popupShareableText( title, message );
-    }
-    
-    private void popupShareableText( String title, final String message )
-    {
-        // Set up click handler to share text with a user-selected app (email, clipboard, etc.)
-        DialogInterface.OnClickListener shareHandler = new DialogInterface.OnClickListener()
-        {
-            @SuppressLint( "InlinedApi" )
-            @Override
-            public void onClick( DialogInterface dialog, int which )
-            {
-                ActivityHelper.launchPlainText( GalleryActivity.this, message, getText( R.string.actionShare_title ) );
-            }
-        };
-        
-        new Builder( this ).setTitle( title ).setMessage( message.toString() )
-                .setNeutralButton( R.string.actionShare_title, shareHandler ).create().show();
-    }
-    
-    private void popupAppVersion()
-    {
-        String title = getString( R.string.menuItem_appVersion );
-        String message = getString( R.string.popup_version, mAppData.appVersion,
-                mAppData.appVersionCode );
-        new Builder( this ).setTitle( title ).setMessage( message ).create().show();
     }
     
     @Override
