@@ -44,11 +44,13 @@ public class EmulationProfileActivity extends ProfileActivity
     private static final String CATEGORY_RICE = "categoryRice";
     private static final String CATEGORY_GLN64 = "categoryGln64";
     private static final String CATEGORY_GLIDE64 = "categoryGlide64";
+    private static final String CATEGORY_GLIDEN64 = "categoryGliden64";
     private static final String VIDEO_PLUGIN = "videoPlugin";
     private static final String PATH_HI_RES_TEXTURES = "pathHiResTextures";
     
     // These constants must match the entry-values found in arrays.xml
     private static final String LIBGLIDE64_SO = "libmupen64plus-video-glide64mk2.so";
+    private static final String LIBGLIDEN64_SO = "libmupen64plus-video-gliden64.so";
     private static final String LIBRICE_SO = "libmupen64plus-video-rice.so";
     private static final String LIBGLN64_SO = "libmupen64plus-video-gln64.so";
     
@@ -57,6 +59,7 @@ public class EmulationProfileActivity extends ProfileActivity
     private Preference mCategoryN64 = null;
     private Preference mCategoryRice = null;
     private Preference mCategoryGlide64 = null;
+    private Preference mCategoryGliden64 = null;
     
     @Override
     protected int getPrefsResId()
@@ -86,6 +89,7 @@ public class EmulationProfileActivity extends ProfileActivity
         mCategoryN64 = findPreference( CATEGORY_GLN64 );
         mCategoryRice = findPreference( CATEGORY_RICE );
         mCategoryGlide64 = findPreference( CATEGORY_GLIDE64 );
+        mCategoryGliden64 = findPreference( CATEGORY_GLIDEN64 );
     }
     
     @Override
@@ -120,6 +124,11 @@ public class EmulationProfileActivity extends ProfileActivity
             mScreenRoot.addPreference( mCategoryGlide64 );
         else
             mScreenRoot.removePreference( mCategoryGlide64 );
+        
+        if( LIBGLIDEN64_SO.equals( videoPlugin ) )
+            mScreenRoot.addPreference( mCategoryGliden64 );
+        else
+            mScreenRoot.removePreference( mCategoryGliden64 );
     }
     
     private void processTexturePak( final String filename )
