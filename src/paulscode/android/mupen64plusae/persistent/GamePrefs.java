@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.mupen64plusae.v3.alpha.R;
+import org.mupen64plusae.v3.alpha.gliden64.R;
 
 import paulscode.android.mupen64plusae.input.map.PlayerMap;
 import paulscode.android.mupen64plusae.preference.MultiSelectListPreference;

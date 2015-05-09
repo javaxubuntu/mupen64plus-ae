@@ -24,7 +24,7 @@ import java.io.File;
 import java.util.Comparator;
 import java.util.List;
 
-import org.mupen64plusae.v3.alpha.R;
+import org.mupen64plusae.v3.alpha.gliden64.R;
 
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;

@@ -1,6 +1,6 @@
 package paulscode.android.mupen64plusae.dialog;
 
-import org.mupen64plusae.v3.alpha.R;
+import org.mupen64plusae.v3.alpha.gliden64.R;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;

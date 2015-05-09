@@ -22,7 +22,7 @@ package paulscode.android.mupen64plusae.game;
 
 import java.util.ArrayList;
 
-import org.mupen64plusae.v3.alpha.R;
+import org.mupen64plusae.v3.alpha.gliden64.R;
 
 import paulscode.android.mupen64plusae.ActivityHelper;
 import paulscode.android.mupen64plusae.hack.MogaHack;

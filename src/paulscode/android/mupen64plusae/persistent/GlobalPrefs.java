@@ -27,7 +27,7 @@ import java.util.Locale;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.WordUtils;
-import org.mupen64plusae.v3.alpha.R;
+import org.mupen64plusae.v3.alpha.gliden64.R;
 
 import paulscode.android.mupen64plusae.ActivityHelper;
 import paulscode.android.mupen64plusae.jni.NativeConstants;
@@ -300,7 +300,7 @@ public class GlobalPrefs
         mLocaleCodes = values;
         
         // Files
-        userDataDir = mPreferences.getString( "pathGameSaves", "" );
+        userDataDir = mPreferences.getString( "pathGameSaves", "" ) + "-gliden64";
         galleryCacheDir = userDataDir + "/GalleryCache";
         coverArtDir = galleryCacheDir + "/CoverArt";
         unzippedRomsDir = galleryCacheDir + "/UnzippedRoms";
