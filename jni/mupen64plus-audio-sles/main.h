@@ -1,7 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus-video-rice - version.h                                    *
+ *   Mupen64plus - main.h                                                  *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
- *   Copyright (C) 2009-2011 Richard Goedeken                              *
+ *   Copyright (C) 2008-2012 Tillin9, Richard42                            *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -19,20 +19,32 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* This header file is for versioning information
- *
- */
+/* version info */
+#include "m64p_config.h"
 
-#if !defined(VERSION_H)
-#define VERSION_H
-
-#define PLUGIN_NAME    "Mupen64Plus OpenGL Video Plugin by Rice"
-#define PLUGIN_VERSION           0x020500
-#define VIDEO_PLUGIN_API_VERSION 0x020200
-#define CONFIG_API_VERSION       0x020300
-#define VIDEXT_API_VERSION       0x030000
+#define OPENSLES_AUDIO_PLUGIN_VERSION 	0x020000
+#define AUDIO_PLUGIN_API_VERSION 		0x020000
+#define CONFIG_API_VERSION       		0x020100
+#define CONFIG_PARAM_VERSION     		1.00
 
 #define VERSION_PRINTF_SPLIT(x) (((x) >> 16) & 0xffff), (((x) >> 8) & 0xff), ((x) & 0xff)
 
-#endif /* #define VERSION_H */
+/* declarations of pointers to Core config functions */
+extern ptr_ConfigListSections     ConfigListSections;
+extern ptr_ConfigOpenSection      ConfigOpenSection;
+extern ptr_ConfigDeleteSection    ConfigDeleteSection;
+extern ptr_ConfigSaveSection      ConfigSaveSection;
+extern ptr_ConfigListParameters   ConfigListParameters;
+extern ptr_ConfigSaveFile         ConfigSaveFile;
+extern ptr_ConfigSetParameter     ConfigSetParameter;
+extern ptr_ConfigGetParameter     ConfigGetParameter;
+extern ptr_ConfigGetParameterHelp ConfigGetParameterHelp;
+extern ptr_ConfigSetDefaultInt    ConfigSetDefaultInt;
+extern ptr_ConfigSetDefaultFloat  ConfigSetDefaultFloat;
+extern ptr_ConfigSetDefaultBool   ConfigSetDefaultBool;
+extern ptr_ConfigSetDefaultString ConfigSetDefaultString;
+extern ptr_ConfigGetParamInt      ConfigGetParamInt;
+extern ptr_ConfigGetParamFloat    ConfigGetParamFloat;
+extern ptr_ConfigGetParamBool     ConfigGetParamBool;
+extern ptr_ConfigGetParamString   ConfigGetParamString;
 

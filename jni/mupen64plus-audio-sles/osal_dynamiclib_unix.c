@@ -1,7 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus-video-rice - version.h                                    *
+ *   Mupen64plus-core - osal/dynamiclib_unix.c                             *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
- *   Copyright (C) 2009-2011 Richard Goedeken                              *
+ *   Copyright (C) 2009 Richard Goedeken                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -19,20 +19,19 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* This header file is for versioning information
- *
- */
+#include <dlfcn.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#if !defined(VERSION_H)
-#define VERSION_H
+#include "m64p_types.h"
+#include "osal_dynamiclib.h"
 
-#define PLUGIN_NAME    "Mupen64Plus OpenGL Video Plugin by Rice"
-#define PLUGIN_VERSION           0x020500
-#define VIDEO_PLUGIN_API_VERSION 0x020200
-#define CONFIG_API_VERSION       0x020300
-#define VIDEXT_API_VERSION       0x030000
+void * osal_dynlib_getproc(m64p_dynlib_handle LibHandle, const char *pccProcedureName)
+{
+    if (pccProcedureName == NULL)
+        return NULL;
 
-#define VERSION_PRINTF_SPLIT(x) (((x) >> 16) & 0xffff), (((x) >> 8) & 0xff), ((x) & 0xff)
+    return dlsym(LibHandle, pccProcedureName);
+}
 
-#endif /* #define VERSION_H */
 
