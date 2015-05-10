@@ -172,7 +172,7 @@ public class GameSurface extends SurfaceView
      */
     public boolean createGLContext( int majorVersion, int minorVersion, int[] configSpec, boolean forceCreate )
     {
-        Log.i( TAG, "Creating GL context" );
+        Log.i( TAG, "Creating GL context " + majorVersion + "." + minorVersion );
         if( initializeEGL( majorVersion, minorVersion, configSpec ) )
         {
             if( createEGLContext( forceCreate ) )
