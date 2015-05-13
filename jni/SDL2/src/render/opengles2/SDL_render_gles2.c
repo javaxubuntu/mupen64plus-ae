@@ -1631,10 +1631,14 @@ GLES2_CreateRenderer(SDL_Window *window, Uint32 flags)
 #endif
     Uint32 windowFlags;
     GLint window_framebuffer;
+    int major, minor;
+    
+    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major);
+    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
 
     windowFlags = SDL_GetWindowFlags(window);
     if (!(windowFlags & SDL_WINDOW_OPENGL)) {
