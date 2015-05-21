@@ -497,6 +497,22 @@ LOCAL_LDFLAGS           := $(MY_LOCAL_LDFLAGS)
 LOCAL_LDLIBS            := $(MY_LOCAL_LDLIBS) -lGLESv3
 include $(BUILD_SHARED_LIBRARY)
 
+###########
+# gles 3.1
+###########
+include $(CLEAR_VARS)
+LOCAL_MODULE            := $(MY_LOCAL_MODULE)-gles31
+LOCAL_SHARED_LIBRARIES  := $(MY_LOCAL_SHARED_LIBRARIES)
+LOCAL_STATIC_LIBRARIES  := $(MY_LOCAL_STATIC_LIBRARIES)
+LOCAL_ARM_MODE          := $(MY_LOCAL_ARM_MODE)
+LOCAL_C_INCLUDES        := $(MY_LOCAL_C_INCLUDES)
+LOCAL_SRC_FILES         := $(MY_LOCAL_SRC_FILES) $(SRCDIR)/OGL3X/UniformBlock.cpp $(SRCDIR)/OGL3X/GLSLCombiner_ogl3x.cpp
+LOCAL_CFLAGS            := $(MY_LOCAL_CFLAGS) -DGLES3_1
+LOCAL_CPPFLAGS          := $(MY_LOCAL_CPPFLAGS)
+LOCAL_LDFLAGS           := $(MY_LOCAL_LDFLAGS)
+LOCAL_LDLIBS            := $(MY_LOCAL_LDLIBS) -lGLESv3
+include $(BUILD_SHARED_LIBRARY)
+
 
 #########################
 # mupen64plus-video-rice
