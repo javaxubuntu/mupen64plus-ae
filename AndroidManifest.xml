@@ -23,6 +23,7 @@
     <application
         android:name="paulscode.android.mupen64plusae.AppMupen64Plus"
         android:allowBackup="true"
+        android:dither="false"
         android:isGame="true"
         android:hardwareAccelerated="true"
         android:icon="@drawable/icon"
