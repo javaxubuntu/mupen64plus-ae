@@ -64,6 +64,7 @@ import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 
@@ -210,6 +211,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         // Listen to game surface events (created, changed, destroyed)
         mSurface.getHolder().addCallback( this );
         mSurface.getHolder().setFormat( PixelFormat.RGBA_8888 );
+        mActivity.getWindow().setFormat( PixelFormat.RGBA_8888 );
         
         // Update the GameSurface size
         mSurface.getHolder().setFixedSize( mGlobalPrefs.videoRenderWidth, mGlobalPrefs.videoRenderHeight );
