@@ -52,6 +52,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.PixelFormat;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -208,6 +209,7 @@ public class GameLifecycleHandler implements View.OnKeyListener, SurfaceHolder.C
         
         // Listen to game surface events (created, changed, destroyed)
         mSurface.getHolder().addCallback( this );
+        mSurface.getHolder().setFormat( PixelFormat.RGBA_8888 );
         
         // Update the GameSurface size
         mSurface.getHolder().setFixedSize( mGlobalPrefs.videoRenderWidth, mGlobalPrefs.videoRenderHeight );
