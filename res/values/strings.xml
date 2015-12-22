@@ -438,8 +438,6 @@
 
     <!-- Cheat Editor -->
     <string name="menuItem_cheatEditor">Cheat editor</string>
-    <string name="cheatEditor_empty">Empty cheat</string>
-    <string name="cheatEditor_added">Empty cheat added at bottom of list</string>
     <string name="cheatEditor_edit">Edit cheats</string>
     <string name="cheatEditor_edit_desc">Long press a cheat to edit it</string>
     <string name="cheatEditor_help">Help</string>
@@ -457,18 +455,24 @@
     <string name="cheatEditor_notes_desc">Edit cheat notes</string>
     <string name="cheatEditor_code">Cheat code</string>
     <string name="cheatEditor_code_desc">Edit cheat code</string>
-    <string name="cheatEditor_badCode">Bad code(s), reverting…</string>
-    <string name="cheatEditor_option">Cheat options</string>
-    <string name="cheatEditor_option_desc">Edit cheat options</string>
-    <string name="cheatEditor_badOption">Bad option(s), reverting…</string>
-    <string name="cheatEditor_delete">Delete cheat</string>
+
     <string name="cheatEditor_confirm">Are you sure?</string>
     <string name="cheatEditor_info">Cheat information</string>
-    <string name="cheatEditor_title2">Title:</string>
-    <string name="cheatEditor_notes2">Notes:</string>
-    <string name="cheatEditor_code2">Code(s):</string>
-    <string name="cheatEditor_option2">Option(s):</string>
     <string name="cheatEditor_saveConfirm">Save cheat file?</string>
+    
+    
+    <string name="cheatEditor_edit1">Edit cheat</string>
+    <string name="cheatEditor_delete">Delete cheat</string>
+    <string name="cheatEditor_add">Add cheat</string>
+    <string name="cheatEditor_save">Save cheat</string>
+    <string name="cheatEditor_hint_cheatTitle">Cheat Title</string>
+    <string name="cheatEditor_hint_cheatNotes">Cheat Notes (optional)</string>
+    <string name="cheatEditor_hint_cheatAddress">Address</string>
+    <string name="cheatEditor_hint_value">Value</string>
+    <string name="cheatEditor_hint_value_description">Description</string>
+    <string name="cheatEditor_add_option">Add option</string>
+    <string name="cheatEditor_remove_option">Remove option</string>
+    
 
     <!-- Hi-Res Texture Unpacking -->
     <string name="pathHiResTexturesTask_title">Unpacking textures</string>
